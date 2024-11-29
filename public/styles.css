@@ -1,0 +1,19 @@
+ul {
+	padding: 10px;
+	list-style-type: none;
+	width: 200px;
+}
+
+li {
+	text-align: center;
+	padding: 5px 10px;
+	margin: 5px;
+}
+
+.draggable-item {
+	background: #9bcdf0;
+}
+
+.sortable-item {
+	background: #6c2020;
+}

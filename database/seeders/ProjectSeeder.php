@@ -15,14 +15,12 @@ class ProjectSeeder extends Seeder
      */
     public function run()
     {
-        // Inisialisasi Faker untuk generate data acak
         $faker = Faker::create();
 
-        // Menambahkan data ke tabel 'projects'
-        // Misalnya menambahkan 5 project
+        // Menambah data ke tabel projects
         for ($i = 0; $i < 5; $i++) {
             DB::table('projects')->insert([
-                'nama_project' => $faker->sentence(4),  // Nama project berupa kalimat acak
+                'nama_project' => $faker->sentence(4),  // kalimat acak
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
