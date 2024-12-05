@@ -3,51 +3,56 @@ init_draggable($('.draggable-item'));
 
 // Konfigurasi untuk sortable2
 $('#sortable2').sortable({
-  connectWith: '#sortable1, #sortable2, #sortable3', // Tambahkan #sortable3 untuk koneksi
+  connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item, .sortable-item',
   start: function(event, ui) {
     $('#sortable1, #sortable2, #sortable3').sortable('enable');
   },
   receive: function(event, ui) {
     if (ui.item.hasClass('ui-draggable')) {
-      // Hancurkan draggable agar bisa drag keluar dari container sortable
       ui.item.draggable("destroy");
     }
-    console.log(ui);
+    
+    // Update status melalui AJAX setelah item dipindahkan
+    updateStatus(ui.item, '2');
   }
 });
 
 // Konfigurasi untuk sortable1
 $('#sortable1').sortable({
-  connectWith: '#sortable1, #sortable2, #sortable3', // Tambahkan #sortable3 untuk koneksi
+  connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item, .sortable-item',
   receive: function(event, ui) {
     $('#sortable1').sortable('disable');
     var widget = ui.item;
     init_draggable(widget);
+
+    // Update status melalui AJAX setelah item dipindahkan
+    updateStatus(ui.item, '1');
   }
 });
 
 // Konfigurasi untuk sortable3
 $('#sortable3').sortable({
-  connectWith: '#sortable1, #sortable2, #sortable3', // Tambahkan #sortable1 dan #sortable2
+  connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item, .sortable-item',
   start: function(event, ui) {
     $('#sortable1, #sortable2, #sortable3').sortable('enable');
   },
   receive: function(event, ui) {
     if (ui.item.hasClass('ui-draggable')) {
-      // Hancurkan draggable agar bisa drag keluar dari container sortable
       ui.item.draggable("destroy");
     }
-    console.log(ui);
+
+    // Update status melalui AJAX setelah item dipindahkan
+    updateStatus(ui.item, '3');
   }
 });
 
 // Fungsi untuk menginisialisasi draggable pada widget
 function init_draggable(widget) {
   widget.draggable({
-    connectToSortable: '#sortable1, #sortable2, #sortable3', // Tambahkan #sortable3
+    connectToSortable: '#sortable1, #sortable2, #sortable3',
     stack: '.draggable-item',
     revert: true,
     revertDuration: 200,
@@ -57,30 +62,57 @@ function init_draggable(widget) {
   });
 }
 
+// Fungsi untuk mengupdate status menggunakan AJAX
+function updateStatus(item, status) {
+  const taskId = item.data('task-id'); // Ambil task ID dari data-task-id
+  const taskName = item.text(); // Ambil nama task dari teks elemen
+  const taskProjectId = item.data('project-id'); // Ambil idproject dari data yang terkait dengan item
+
+  // Kirim permintaan PUT ke API untuk memperbarui status task
+  $.ajax({
+    url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
+    type: 'PUT',
+    data: JSON.stringify({
+      idtask: taskId, // ID task
+      nama_task: taskName, // Nama task
+      status: status, // Status yang baru
+      idproject: taskProjectId, // ID project
+      project: {
+        idproject: taskProjectId, // ID project yang sama
+        nama_project: item.data('project-name') // Nama project
+      }
+    }),
+    contentType: 'application/json',
+    success: function(response) {
+      console.log('Status berhasil diperbarui:', response);
+    },
+    error: function(xhr, status, error) {
+      console.error('Gagal memperbarui status:', error);
+      console.log('Respons dari server:', xhr.responseText); // Tampilkan detail error
+    }
+  });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-  // API endpoint untuk mengambil data
-  const apiEndpoint = 'http://127.0.0.1:8000/api/tasks'; // Ganti dengan URL API yang sesuai
+  const apiEndpoint = 'http://127.0.0.1:8000/api/tasks';
 
-  // Ambil data dari API
   fetch(apiEndpoint)
-    .then(response => response.json()) // Mengubah respons menjadi JSON
+    .then(response => response.json())
     .then(data => {
-      // Memeriksa apakah data berupa array
       if (Array.isArray(data) && data.length > 0) {
-        // Ambil elemen <ul> untuk masing-masing status
         const sortable1 = document.getElementById('sortable1');
         const sortable2 = document.getElementById('sortable2');
         const sortable3 = document.getElementById('sortable3');
 
-        // Iterasi data dan pisahkan berdasarkan status
         data.forEach(task => {
-          // Buat elemen <li> untuk setiap task
           const liElement = document.createElement('li');
           liElement.classList.add('ui-state-default', 'draggable-item');
-          liElement.textContent = `${task.nama_task} (Project: ${task.project.nama_project})`;
+          liElement.textContent = `${task.nama_task}`;
+          liElement.dataset.taskId = task.idtask; // Menyimpan ID task dalam data-task-id
+          liElement.dataset.projectId = task.idproject; // Menyimpan ID project dalam data-project-id
+          liElement.dataset.projectName = task.project.nama_project; // Menyimpan nama project dalam data-project-name
 
-          // Masukkan task ke dalam <ul> berdasarkan status
+          // Menambahkan item ke sortable berdasarkan statusnya
           if (task.status === "1") {
             sortable1.appendChild(liElement);
           } else if (task.status === "2") {
