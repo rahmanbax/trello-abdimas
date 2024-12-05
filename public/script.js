@@ -1,6 +1,20 @@
 // Inisialisasi draggable untuk semua elemen yang memiliki kelas .draggable-item
 init_draggable($('.draggable-item'));
 
+// Konfigurasi untuk sortable1
+$('#sortable1').sortable({
+  connectWith: '#sortable1, #sortable2, #sortable3',
+  items: '.draggable-item, .sortable-item',
+  receive: function(event, ui) {
+    $('#sortable1').sortable('disable');
+    var widget = ui.item;
+    init_draggable(widget);
+
+    // Update status melalui AJAX setelah item dipindahkan
+    updateStatus(ui.item, '1');
+  }
+});
+
 // Konfigurasi untuk sortable2
 $('#sortable2').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
@@ -15,20 +29,6 @@ $('#sortable2').sortable({
     
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '2');
-  }
-});
-
-// Konfigurasi untuk sortable1
-$('#sortable1').sortable({
-  connectWith: '#sortable1, #sortable2, #sortable3',
-  items: '.draggable-item, .sortable-item',
-  receive: function(event, ui) {
-    $('#sortable1').sortable('disable');
-    var widget = ui.item;
-    init_draggable(widget);
-
-    // Update status melalui AJAX setelah item dipindahkan
-    updateStatus(ui.item, '1');
   }
 });
 
@@ -73,14 +73,9 @@ function updateStatus(item, status) {
     url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
     type: 'PUT',
     data: JSON.stringify({
-      idtask: taskId, // ID task
       nama_task: taskName, // Nama task
       status: status, // Status yang baru
       idproject: taskProjectId, // ID project
-      project: {
-        idproject: taskProjectId, // ID project yang sama
-        nama_project: item.data('project-name') // Nama project
-      }
     }),
     contentType: 'application/json',
     success: function(response) {
