@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
           liElement.textContent = `${task.nama_task}`;
           liElement.dataset.taskId = task.idtask; // Menyimpan ID task dalam data-task-id
           liElement.dataset.projectId = task.idproject; // Menyimpan ID project dalam data-project-id
-          liElement.dataset.projectName = task.project.nama_project; // Menyimpan nama project dalam data-project-name
 
           // Menambahkan item ke sortable berdasarkan statusnya
           if (task.status === "1") {
