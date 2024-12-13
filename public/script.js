@@ -123,3 +123,102 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Terjadi kesalahan saat mengambil data:', error);
     });
 });
+// Fungsi untuk memuat daftar project ke dalam dropdown
+function loadProjects() {
+  const apiEndpoint = 'http://127.0.0.1:8000/api/projects'; // Endpoint untuk mengambil daftar project
+
+  // Mengambil daftar project dari API
+  $.ajax({
+    url: apiEndpoint,
+    type: 'GET',
+    success: function(response) {
+      const projectSelect = document.getElementById('project-id');
+
+      // Clear existing options
+      projectSelect.innerHTML = '';
+
+      // Menambahkan opsi "Pilih Project"
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Pilih Project';
+      projectSelect.appendChild(defaultOption);
+
+      // Menambahkan opsi project yang diambil dari API
+      response.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.idproject;  // Set value ke ID project
+        option.textContent = project.nama_project;  // Set teks ke nama project
+        projectSelect.appendChild(option);
+      });
+    },
+    error: function(xhr, status, error) {
+      console.error('Gagal mengambil data project:', error);
+      console.log('Respons dari server:', xhr.responseText);
+    }
+  });
+}
+
+// Fungsi untuk membuat task baru
+function createTask(taskName, projectId) {
+  const apiEndpoint = 'http://127.0.0.1:8000/api/tasks';  // Endpoint API untuk membuat task baru
+
+  // Mengirim permintaan POST untuk membuat task baru
+  $.ajax({
+    url: apiEndpoint,
+    type: 'POST',
+    data: JSON.stringify({
+      nama_task: taskName,      // Nama task
+      status: '1',              // Status default (1: Todo)
+      idproject: projectId      // ID project terkait
+    }),
+    contentType: 'application/json',
+    success: function(response) {
+      console.log('Task berhasil dibuat:', response);
+
+      // Setelah task berhasil dibuat, tambahkan item ke daftar Todo
+      const newTask = response; // Asumsi response berisi data task yang baru dibuat
+      const liElement = document.createElement('li');
+      liElement.classList.add('ui-state-default', 'draggable-item');
+      liElement.textContent = newTask.nama_task;
+      liElement.dataset.taskId = newTask.idtask;  // Menyimpan ID task dalam data-task-id
+      liElement.dataset.projectId = newTask.idproject;  // Menyimpan ID project
+
+      // Menambahkan task ke #sortable1 (Todo list)
+      document.getElementById('sortable1').appendChild(liElement);
+
+      // Inisialisasi draggable pada task yang baru
+      init_draggable($(liElement));
+    },
+    error: function(xhr, status, error) {
+      console.error('Gagal membuat task:', error);
+      console.log('Respons dari server:', xhr.responseText); // Tampilkan detail error
+    }
+  });
+}
+
+// Menangani submit form untuk membuat task baru
+document.getElementById('create-task-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  // Ambil data dari form
+  const taskName = document.getElementById('task-name').value;
+  const projectId = document.getElementById('project-id').value;
+
+  // Validasi data
+  if (!taskName || !projectId) {
+    alert('Nama task dan ID project harus diisi');
+    return;
+  }
+
+  // Buat task baru
+  createTask(taskName, projectId);
+
+  // Kosongkan form setelah submit
+  document.getElementById('create-task-form').reset();
+});
+
+// Muat daftar project saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+  loadProjects(); // Memuat daftar project ke dropdown
+});
+
