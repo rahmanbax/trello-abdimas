@@ -8,6 +8,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::get('/depan', function () {
-    return view('depan.index');  // Mengarah ke resources/views/index/index.blade.php
+Route::get('/utama', function () {
+    return view('utama.index');  // Mengarah ke resources/views/index/index.blade.php
 });
