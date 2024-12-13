@@ -44,7 +44,7 @@
         </div>
         <div id="sortable2" class="grid grid-rows-2 gap-2">
           <!-- Card -->
-           
+
         </div>
       </div>
 
@@ -59,14 +59,11 @@
         </div>
         <div id="sortable3" class="grid grid-rows-2 gap-2">
           <!-- Card -->
-
+          <!-- <div class="task-card"></div> -->
         </div>
       </div>
     </div>
   </div>
-
-
-
 
   <script src="script.js"></script>
 
