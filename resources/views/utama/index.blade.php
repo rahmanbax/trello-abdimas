@@ -13,7 +13,15 @@
 </head>
 
 <body>
-
+<div class="project-form">
+    <h2>Tambah Project Baru</h2>
+    <form id="create-project-form">
+      <label for="project-name">Nama Project:</label>
+      <input type="text" id="project-name" name="project-name" required>
+      
+      <button type="submit">Buat Project</button>
+    </form>
+  </div>
 
   <!-- Form untuk membuat task baru -->
   <div class="task-form">

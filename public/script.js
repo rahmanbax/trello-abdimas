@@ -222,3 +222,47 @@ document.addEventListener('DOMContentLoaded', function() {
   loadProjects(); // Memuat daftar project ke dropdown
 });
 
+// Fungsi untuk membuat project baru
+function createProject(projectName) {
+  const apiEndpoint = 'http://127.0.0.1:8000/api/projects'; // Endpoint API untuk membuat project baru
+
+  // Mengirim permintaan POST untuk membuat project baru
+  $.ajax({
+    url: apiEndpoint,
+    type: 'POST',
+    data: JSON.stringify({
+      nama_project: projectName,  // Nama project yang diterima dari form
+    }),
+    contentType: 'application/json',
+    success: function(response) {
+      console.log('Project berhasil dibuat:', response);
+
+      // Setelah project berhasil dibuat, Anda bisa melakukan sesuatu, misalnya, menambahkan project ke dalam daftar
+      alert('Project baru berhasil dibuat: ' + response.nama_project);
+    },
+    error: function(xhr, status, error) {
+      console.error('Gagal membuat project:', error);
+      console.log('Respons dari server:', xhr.responseText); // Tampilkan detail error
+    }
+  });
+}
+
+// Menangani submit form untuk membuat project baru
+document.getElementById('create-project-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  // Ambil data dari form
+  const projectName = document.getElementById('project-name').value;
+
+  // Validasi data
+  if (!projectName) {
+    alert('Nama project harus diisi');
+    return;
+  }
+
+  // Buat project baru
+  createProject(projectName);
+
+  // Kosongkan form setelah submit
+  document.getElementById('create-project-form').reset();
+});
