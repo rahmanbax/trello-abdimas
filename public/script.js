@@ -4,7 +4,7 @@ init_draggable($('.draggable-item'));
 // Konfigurasi untuk sortable1
 $('#sortable1').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
-  items: '.draggable-item, .sortable-item',
+  items: '.draggable-item',
   receive: function(event, ui) {
     $('#sortable1').sortable('disable');
     var widget = ui.item;
@@ -18,7 +18,7 @@ $('#sortable1').sortable({
 // Konfigurasi untuk sortable2
 $('#sortable2').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
-  items: '.draggable-item, .sortable-item',
+  items: '.draggable-item',
   start: function(event, ui) {
     $('#sortable1, #sortable2, #sortable3').sortable('enable');
   },
@@ -35,7 +35,7 @@ $('#sortable2').sortable({
 // Konfigurasi untuk sortable3
 $('#sortable3').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
-  items: '.draggable-item, .sortable-item',
+  items: '.draggable-item',
   start: function(event, ui) {
     $('#sortable1, #sortable2, #sortable3').sortable('enable');
   },
@@ -188,6 +188,8 @@ function createTask(taskName, projectId) {
 
       // Inisialisasi draggable pada task yang baru
       init_draggable($(liElement));
+
+      location.reload();  // Reload halaman
     },
     error: function(xhr, status, error) {
       console.error('Gagal membuat task:', error);
@@ -236,9 +238,8 @@ function createProject(projectName) {
     contentType: 'application/json',
     success: function(response) {
       console.log('Project berhasil dibuat:', response);
-
-      // Setelah project berhasil dibuat, Anda bisa melakukan sesuatu, misalnya, menambahkan project ke dalam daftar
-      alert('Project baru berhasil dibuat: ' + response.nama_project);
+      
+      // location.reload();  // Reload halaman
     },
     error: function(xhr, status, error) {
       console.error('Gagal membuat project:', error);
