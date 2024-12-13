@@ -12,6 +12,13 @@ $('#sortable1').sortable({
 
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '1');
+  },
+  update: function(event, ui) {
+    // Cek apakah sortable1 kosong
+    if ($('#sortable1').children().length === 0) {
+      // Re-enable drag dari sortable lain ke sortable1 jika kosong
+      $('#sortable1').sortable('enable');
+    }
   }
 });
 
@@ -100,8 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortable3 = document.getElementById('sortable3');
 
         data.forEach(task => {
-          const liElement = document.createElement('li');
-          liElement.classList.add('ui-state-default', 'draggable-item');
+          const liElement = document.createElement('div');
+          liElement.classList.add('draggable-item', 'task-card');
           liElement.textContent = `${task.nama_task}`;
           liElement.dataset.taskId = task.idtask; // Menyimpan ID task dalam data-task-id
           liElement.dataset.projectId = task.idproject; // Menyimpan ID project dalam data-project-id
