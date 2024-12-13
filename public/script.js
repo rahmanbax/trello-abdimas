@@ -5,6 +5,7 @@ init_draggable($('.draggable-item'));
 $('#sortable1').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item',
+  
   receive: function(event, ui) {
     $('#sortable1').sortable('disable');
     var widget = ui.item;
@@ -12,13 +13,6 @@ $('#sortable1').sortable({
 
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '1');
-  },
-  update: function(event, ui) {
-    // Cek apakah sortable1 kosong
-    if ($('#sortable1').children().length === 0) {
-      // Re-enable drag dari sortable lain ke sortable1 jika kosong
-      $('#sortable1').sortable('enable');
-    }
   }
 });
 
@@ -44,7 +38,7 @@ $('#sortable3').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item',
   start: function(event, ui) {
-    $('#sortable1, #sortable2, #sortable3').sortable('enable');
+    $('#sortable1, #sortable3').sortable('enable');
   },
   receive: function(event, ui) {
     if (ui.item.hasClass('ui-draggable')) {
@@ -59,12 +53,12 @@ $('#sortable3').sortable({
 // Fungsi untuk menginisialisasi draggable pada widget
 function init_draggable(widget) {
   widget.draggable({
-    connectToSortable: '#sortable1, #sortable2, #sortable3',
+    connectToSortable: '#sortable2, #sortable3',
     stack: '.draggable-item',
     revert: true,
     revertDuration: 200,
     start: function(event, ui) {
-      $('#sortable1, #sortable2, #sortable3').sortable('disable');
+      $('#sortable1').sortable('disable');
     }
   });
 }

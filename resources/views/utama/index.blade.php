@@ -27,7 +27,7 @@
           </div>
         </div>
         <!-- board card -->
-        <div id="sortable1" class="flex flex-col gap-2">
+        <div id="sortable1" class="grid grid-rows-2 gap-2">
           <!-- Card -->
         </div>
       </div>
@@ -57,7 +57,7 @@
             <p class="text-2xl">+</p>
           </div>
         </div>
-        <div id="sortable3" class="flex flex-col gap-2">
+        <div id="sortable3" class="grid grid-rows-2 gap-2">
           <!-- Card -->
 
         </div>
