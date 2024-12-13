@@ -8,9 +8,9 @@
   <title>My Website</title>
   <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js" integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css">
   <link rel="stylesheet" href="styles.css">
+  @vite('resources/css/app.css')
 </head>
 
 <body>
@@ -99,26 +99,8 @@
     </div>
   </div>
 
-  <script>
-    $(document).ready(function() {
-      // Enable sortable functionality for all connected lists
-      $(".connectedSortable").sortable({
-        connectWith: ".connectedSortable",
-        items: ".draggable-item", // Only make items with this class draggable
-        placeholder: "ui-state-highlight", // Add a placeholder during the drag operation
-        start: function(event, ui) {
-          ui.item.css('background', '#f0f0f0'); // Change background on drag start
-        },
-        stop: function(event, ui) {
-          ui.item.css('background', ''); // Reset background on drag stop
-        },
-        update: function(event, ui) {
-          // You can handle the update event here, for example by sending AJAX requests
-          console.log("Item moved:", ui.item);
-        }
-      }).disableSelection();
-    });
-  </script>
+  <script src="script.js"></script>
+
 </body>
 
 </html>
