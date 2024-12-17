@@ -8,10 +8,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::get('/utama', function () {
-    return view('utama.index');  // Mengarah ke resources/views/index/index.blade.php
+Route::get('/project', function () {
+    return view('project.index'); 
 });
 
-Route::get('/project', function () {
-    return view('project.index');  // Mengarah ke resources/views/index/index.blade.php
+Route::get('/project/{id}', function () {
+    return view('project.detail'); 
 });

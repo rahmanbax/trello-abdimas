@@ -7,14 +7,32 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        // Mengambil parameter 'idproject' dari query string
+        $idProject = $request->query('idproject');
+        
+        // Memastikan bahwa idproject ada dalam query dan valid
+        if ($idProject) {
+            // Menyaring data task berdasarkan 'idproject'
+            $tasks = Task::where('idproject', $idProject)->get();
+        } else {
+            // Jika tidak ada parameter 'idproject', ambil semua data task
+            $tasks = Task::all();
+        }
+
+        // Kembalikan data dalam format JSON
+        return response()->json($tasks);
+    }
     /**
      * Fetch all tasks with their related projects.
      */
-    public function index()
-    {
-        $tasks = Task::with('project')->get();
-        return response()->json($tasks, 200);
-    }
+    // public function index()
+    // {
+    //     $tasks = Task::with('project')->get();
+    //     return response()->json($tasks, 200);
+    // }
 
     /**
      * Create a new task.
@@ -88,5 +106,22 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->json(['message' => 'Task deleted successfully'], 200);
+    }
+
+    public function detail(Request $request)
+    {
+        // Mengambil parameter 'idproject' dari query string
+        $idProject = $request->query('idproject');
+
+        // Jika parameter idproject diberikan, kita filter data berdasarkan idproject
+        if ($idProject) {
+            $tasks = Task::where('idproject', $idProject)->get();
+        } else {
+            // Jika tidak ada parameter idproject, kembalikan semua data task
+            $tasks = Task::all();
+        }
+
+        // Kembalikan response dalam format JSON
+        return response()->json($tasks);
     }
 }

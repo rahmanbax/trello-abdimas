@@ -15,9 +15,9 @@
 
 <body>
   <div class="my-6 mx-20">
-    <div>
-      <h1 class="font-semibold text-xl">My Proyek Terapan</h1>
-
+    <div class="flex justify-between">
+      <h1 id="project-name" class="font-semibold text-xl"></h1>
+      <button id="add-task-btn" class="flex items-center gap-2 py-2 px-3 rounded-lg text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah tugas</button>
     </div>
     <div class="mt-6 grid grid-cols-3 gap-8">
       <!-- To-do -->
@@ -68,7 +68,39 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- MODAL -->
+  <div id="modal" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all p-4 w-[400px]">
+          <div class="">
+
+            <div class="text-left">
+              <h3 class="text-base font-semibold text-gray-900" id="modal-title">Tambah tugas baru</h3>
+              <div class="mt-2">
+                <input
+                  type="text"
+                  id="taskname"
+                  name="taskname"
+                  class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Nama tugas"
+                  aria-labelledby="taskname"
+                  autocomplete="off" />
+              </div>
+            </div>
+
+          </div>
+          <div class="bg-gray-50 flex sm:flex-row-reverse mt-4">
+            <button id="tambah-btn" type="button" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Tambah</button>
+            <button id="close-modal-btn" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm  ring-1 ring-inset ring-gray-300 hover:bg-gray-100 sm:mt-0 sm:w-auto">Batal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/task.js"></script>
 
 </body>
 
