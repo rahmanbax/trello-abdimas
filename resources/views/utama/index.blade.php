@@ -15,7 +15,10 @@
 
 <body>
   <div class="my-6 mx-20">
-    <h1 class="text-xl">My Proyek Terapan</h1>
+    <div>
+      <h1 class="font-semibold text-xl">My Proyek Terapan</h1>
+
+    </div>
     <div class="mt-6 grid grid-cols-3 gap-8">
       <!-- To-do -->
       <div class="connectedSortable  rounded-lg bg-slate-100 p-3 h-fit">

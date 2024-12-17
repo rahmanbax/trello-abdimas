@@ -6,17 +6,16 @@ $('#sortable1').sortable({
   connectWith: '#sortable1, #sortable2, #sortable3',
   items: '.draggable-item',
   receive: function(event, ui) {
-    $('#sortable1').sortable('disable');
+    // Pastikan draggable kembali diaktifkan setelah item dipindahkan
     var widget = ui.item;
-    init_draggable(widget);
+    init_draggable(widget); // Inisialisasi ulang draggable pada widget
 
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '1');
   },
   update: function(event, ui) {
-    // Cek apakah sortable1 kosong
+    // Cek apakah sortable1 kosong dan enable jika perlu
     if ($('#sortable1').children().length === 0) {
-      // Re-enable drag dari sortable lain ke sortable1 jika kosong
       $('#sortable1').sortable('enable');
     }
   }
@@ -32,16 +31,18 @@ $('#sortable2').sortable({
   },
   receive: function(event, ui) {
     if (ui.item.hasClass('ui-draggable')) {
-      ui.item.draggable("destroy");
+      ui.item.draggable("destroy"); // Hancurkan draggable yang sudah ada
     }
+
+    // Inisialisasi draggable kembali untuk item yang dipindahkan
+    init_draggable(ui.item);
 
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '2');
   },
   update: function(event, ui) {
-    // Cek apakah sortable2 kosong
+    // Cek apakah sortable2 kosong dan enable jika perlu
     if ($('#sortable2').children().length === 0) {
-      // Re-enable drag dari sortable lain ke sortable2 jika kosong
       $('#sortable2').sortable('enable');
     }
   }
@@ -57,16 +58,18 @@ $('#sortable3').sortable({
   },
   receive: function(event, ui) {
     if (ui.item.hasClass('ui-draggable')) {
-      ui.item.draggable("destroy");
+      ui.item.draggable("destroy"); // Hancurkan draggable yang sudah ada
     }
+
+    // Inisialisasi draggable kembali untuk item yang dipindahkan
+    init_draggable(ui.item);
 
     // Update status melalui AJAX setelah item dipindahkan
     updateStatus(ui.item, '3');
   },
   update: function(event, ui) {
-    // Cek apakah sortable3 kosong
+    // Cek apakah sortable3 kosong dan enable jika perlu
     if ($('#sortable3').children().length === 0) {
-      // Re-enable drag dari sortable lain ke sortable3 jika kosong
       $('#sortable3').sortable('enable');
     }
   }
@@ -82,9 +85,14 @@ function init_draggable(widget) {
     start: function(event, ui) {
       // Disable sortable untuk semua elemen ketika drag dimulai
       $('#sortable1, #sortable2, #sortable3').sortable('disable');
+    },
+    stop: function(event, ui) {
+      // Enable semua sortable setelah drag selesai
+      $('#sortable1, #sortable2, #sortable3').sortable('enable');
     }
   });
 }
+
 
 // Fungsi untuk mengupdate status menggunakan AJAX
 function updateStatus(item, status) {
