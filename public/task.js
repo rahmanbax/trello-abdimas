@@ -133,6 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data && data.nama_project) {
         // Update nama proyek di halaman
         document.getElementById('project-name').textContent = data.nama_project;
+        // Update tag <title> dengan nama proyek
+        document.title = data.nama_project;
       } else {
         console.error('Nama proyek tidak ditemukan');
       }
@@ -206,6 +208,9 @@ function addNewTask(taskName, projectId) {
       
       // Tutup modal setelah berhasil menambahkan
       $('#modal').addClass('hidden');
+
+      // Clear input field setelah task ditambahkan
+      $('#taskname').val('');  // Mengosongkan input taskname
     },
     error: function(xhr, status, error) {
       console.error('Gagal menambahkan tugas:', error);
@@ -227,9 +232,6 @@ function addTaskToKanban(taskId, taskName, projectId) {
 
   // Menambahkan task ke kanban yang sesuai (To-do dalam hal ini)
   sortable1.appendChild(newTask);
-
-  // Menginisialisasi draggable pada task baru
-  init_draggable($(newTask));
 }
 
 $('#tambah-btn').click(function() {
@@ -244,6 +246,6 @@ $('#tambah-btn').click(function() {
     // Panggil fungsi untuk menambahkan tugas baru
     addNewTask(taskName, projectId);
   } else {
-    alert('Nama tugas tidak boleh kosong!');
+    alert('Nama tugas tidak boleh kosong');
   }
 });
