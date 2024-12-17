@@ -21,7 +21,7 @@
     </div>
     <div class="mt-6 grid grid-cols-3 gap-8">
       <!-- To-do -->
-      <div class="connectedSortable  rounded-lg bg-slate-100 p-3 h-fit">
+      <div class="connectedSortable  rounded-lg bg-slate-100 border-2 border-slate-200  p-3 h-fit">
         <div class="flex flex-row justify-between items-center mb-2 mx-1">
           <h2 class="bg-red-100 text-base font-medium w-max px-2 rounded mr-2 text-gray-700">To-do</h2>
           <div class="flex items-center text-gray-300">
@@ -36,7 +36,7 @@
       </div>
 
       <!-- WIP Kanban -->
-      <div class="connectedSortable  rounded-lg bg-slate-100 p-3 h-fit">
+      <div class="connectedSortable  rounded-lg bg-slate-100 border-2 border-slate-200 p-3 h-fit">
         <div class="flex flex-row justify-between items-center mb-2 mx-1">
           <h2 class="bg-yellow-100 text-base font-medium w-max px-2 rounded mr-2 text-gray-700">On Progress</h2>
 
@@ -52,7 +52,7 @@
       </div>
 
       <!-- Complete Kanban -->
-      <div class="connectedSortable rounded-lg bg-slate-100 p-3 h-fit">
+      <div class="connectedSortable rounded-lg bg-slate-100 border-2 border-slate-200  p-3 h-fit">
         <div class="flex flex-row justify-between items-center mb-2 mx-1">
           <h2 class="bg-green-100 text-base font-medium w-max px-2 rounded mr-2 text-gray-700">Completed</h2>
           <div class="flex items-center text-gray-300">
