@@ -14,15 +14,16 @@
 </head>
 
 <body>
-    <div class="my-6 mx-20">
+    <div class="my-6 mx-5 lg:mx-20">
         <h1 class="text-xl font-semibold">Proyek anda</h1>
 
-        <div id="project-container" class="mt-6 grid grid-cols-4 gap-8 gap-y-4">
+        <div id="project-container" class="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-4 gap-y-4">
             <!-- <div class="project-card"></div> -->
             <button id="add-project-btn" class="bg-white hover:bg-slate-300 hover:cursor-pointer text-lg border-2 border- border-slate-300 border-dashed rounded-lg p-3 h-24 flex items-center gap-2 place-content-center">
                 <i class="ph-bold ph-plus"></i>
                 Tambah proyek
             </button>
+
         </div>
     </div>
 
@@ -58,7 +59,7 @@
         </div>
     </div>
 
-    <script src="project.js"></script>
+    <script src="/project.js"></script>
 
 </body>
 

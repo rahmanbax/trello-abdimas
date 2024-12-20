@@ -1,44 +1,43 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     const apiEndpoint = "http://127.0.0.1:8000/api/projects";
 
-    fetch(apiEndpoint)
-        .then((response) => response.json())
-        .then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-                // Referensi ke elemen kontainer di halaman
-                const projectContainer =
-                    document.getElementById("project-container");
+    try {
+        const response = await fetch(apiEndpoint);
+        const data = await response.json();
 
-                // Loop melalui data proyek yang diterima
-                data.forEach((project) => {
-                    // Membuat elemen div untuk card proyek
-                    const projectCard = document.createElement("div");
-                    projectCard.classList.add("project-card");
+        if (Array.isArray(data) && data.length > 0) {
+            // Referensi ke elemen kontainer di halaman
+            const projectContainer = document.getElementById("project-container");
 
-                    // Membuat elemen p untuk nama proyek
-                    const projectLink = document.createElement("a");
-                    projectLink.href = `/project/${project.idproject}`;
+            // Loop melalui data proyek yang diterima
+            data.forEach((project) => {
+                // Membuat elemen div untuk card proyek
+                const projectCard = document.createElement("div");
+                projectCard.classList.add("project-card");
 
-                    // Membuat elemen p untuk nama proyek
-                    const projectName = document.createElement("p");
-                    projectName.textContent = project.nama_project; // Menampilkan nama proyek dari API
+                // Membuat elemen a untuk nama proyek
+                const projectLink = document.createElement("a");
+                projectLink.href = `/project/${project.idproject}`;
 
-                    // Menambahkan nama proyek ke dalam card
-                    projectCard.appendChild(projectName);
+                // Membuat elemen p untuk nama proyek
+                const projectName = document.createElement("p");
+                projectName.textContent = project.nama_project;
 
-                    // Membungkus seluruh card dengan link
-                    projectLink.appendChild(projectCard);
+                // Menambahkan nama proyek ke dalam card
+                projectCard.appendChild(projectName);
 
-                    // Menambahkan card ke dalam kontainer proyek
-                    projectContainer.appendChild(projectLink);
-                });
-            } else {
-                console.log("Data tidak valid atau kosong");
-            }
-        })
-        .catch((error) => {
-            console.error("Terjadi kesalahan saat mengambil data:", error);
-        });
+                // Membungkus seluruh card dengan link
+                projectLink.appendChild(projectCard);
+
+                // Menambahkan card ke dalam kontainer proyek
+                projectContainer.appendChild(projectLink);
+            });
+        } else {
+            console.log("Data tidak valid atau kosong");
+        }
+    } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data:", error);
+    }
 });
 
 $("#add-project-btn").click(function () {
@@ -51,58 +50,30 @@ $("#close-modal-btn").click(function () {
 });
 
 // Fungsi untuk menambahkan tugas baru
-function addNewProject(projectName) {
-    // Kirim permintaan POST ke API untuk menambahkan proyek baru
-    $.ajax({
-        url: "http://127.0.0.1:8000/api/projects", // Endpoint API untuk menambahkan proyek
-        type: "POST",
-        data: JSON.stringify({
-            nama_project: projectName,  // Nama proyek yang dimasukkan oleh pengguna
-        }),
-        contentType: "application/json",
-        success: function (response) {
-            console.log("Proyek berhasil ditambahkan:", response);
+async function addNewProject(projectName) {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/api/projects", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                nama_project: projectName, // Nama proyek yang dimasukkan oleh pengguna
+            }),
+        });
 
-            // Tambahkan proyek baru ke dalam tampilan
-            addProjectToPage(response.idproject, projectName);
-
-            // Tutup modal setelah berhasil menambahkan proyek
-            $("#modal").addClass("hidden");
-
-            // Clear input field setelah proyek ditambahkan
-            $("#projectname").val("");  // Mengosongkan input projectname
-        },
-        error: function (xhr, status, error) {
-            console.error("Gagal menambahkan proyek:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+        if (!response.ok) {
+            throw new Error("Gagal menambahkan proyek");
         }
-    });
-}
 
-// Fungsi untuk menambahkan proyek ke dalam tampilan halaman
-function addProjectToPage(projectId, projectName) {
-    const projectContainer = document.getElementById("project-container");
+        const data = await response.json();
+        console.log("Proyek berhasil ditambahkan:", data);
 
-    // Membuat elemen div untuk card proyek
-    const projectCard = document.createElement("div");
-    projectCard.classList.add("project-card");
-
-    // Membuat elemen a untuk link ke proyek
-    const projectLink = document.createElement("a");
-    projectLink.href = `/project/${projectId}`;
-
-    // Membuat elemen p untuk nama proyek
-    const projectText = document.createElement("p");
-    projectText.textContent = projectName; // Nama proyek yang baru ditambahkan
-
-    // Menambahkan nama proyek ke dalam card
-    projectCard.appendChild(projectText);
-
-    // Membungkus seluruh card dengan link
-    projectLink.appendChild(projectCard);
-
-    // Menambahkan card ke dalam kontainer proyek
-    projectContainer.appendChild(projectLink);
+        // Reload halaman untuk memperbarui daftar proyek
+        location.reload();
+    } catch (error) {
+        console.error("Gagal menambahkan proyek:", error);
+    }
 }
 
 // Ketika tombol "Tambah Proyek" diklik

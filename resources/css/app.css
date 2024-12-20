@@ -4,11 +4,15 @@
 
 @layer components {
     .task-card {
-        @apply w-full p-3 rounded-md items-center flex justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800;
+        @apply w-auto p-3 rounded-md items-center flex justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800;
     }
 
     .project-card {
-        @apply bg-slate-600 hover:bg-slate-500 text-lg text-slate-200 text-white rounded-lg p-3 h-24;
+        @apply bg-slate-600 hover:bg-slate-500 text-lg text-slate-200 rounded-lg p-3 h-24;
+    }
+
+    body {
+        @apply overflow-x-hidden;
     }
 
     /* ... */

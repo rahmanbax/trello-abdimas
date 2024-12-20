@@ -14,14 +14,20 @@
 </head>
 
 <body>
-  <div class="my-6 mx-20">
+  <div class="my-6 mx-5 lg:mx-20">
     <div class="flex justify-between">
       <h1 id="project-name" class="font-semibold text-xl"></h1>
-      <button id="add-task-btn" class="flex items-center gap-2 py-2 px-3 rounded-lg text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah tugas</button>
+      <div class="flex gap-2 items-center ">
+        <button id="add-task-btn" class="flex items-center gap-2 py-2 px-3 rounded-lg text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah tugas</button>
+        <div class="h-full w-10 items-center rounded-lg justify-center flex border-slate-200 bg-white hover:bg-slate-100 border-2">
+          <i class="ph-bold ph-dots-three "></i>
+        </div>
+        
+      </div>
     </div>
-    <div class="mt-6 grid grid-cols-3 gap-8">
+    <div class="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-8">
       <!-- To-do -->
-      <div class="connectedSortable  rounded-lg bg-slate-100 border-2 border-slate-200  p-3 h-fit">
+      <div class="connectedSortable ease-in rounded-lg bg-slate-100 border-2 border-slate-200  p-3 h-fit">
         <div class="flex flex-row justify-between items-center mb-2 mx-1">
           <h2 class="bg-red-100 text-base font-medium w-max px-2 rounded mr-2 text-gray-700">To-do</h2>
           <div class="flex items-center text-gray-300">
