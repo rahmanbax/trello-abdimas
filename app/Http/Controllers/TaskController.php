@@ -80,7 +80,7 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'nama_task' => 'required|string|max:255',
-            'status' => 'required|in:1,2,3',
+            'status' => 'nullable|in:1,2,3',
             'idproject' => 'required|exists:projects,idproject',
         ]);
 

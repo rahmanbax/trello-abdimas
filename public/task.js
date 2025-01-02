@@ -105,19 +105,22 @@ function init_draggable(widget) {
 
 // Fungsi untuk mengupdate status menggunakan AJAX
 function updateStatus(item, status) {
-    const taskId = item.data("task-id"); // Ambil task ID dari data-task-id
-    const taskName = item.text(); // Ambil nama task dari teks elemen
-    const taskProjectId = item.data("project-id"); // Ambil idproject dari data yang terkait dengan item
+    const taskId = item.data("task-id");
+    const taskName = item.text();
+    const taskProjectId = item.data("project-id");
 
-    // Kirim permintaan PUT ke API untuk memperbarui status task
+    const data = {
+        nama_task: taskName,
+        status: status,
+        idproject: taskProjectId,
+    };
+
+    console.log("Data yang dikirim untuk update status:", data); // Debugging
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "PUT",
-        data: JSON.stringify({
-            nama_task: taskName, // Nama task
-            status: status, // Status yang baru
-            idproject: taskProjectId, // ID project
-        }),
+        data: JSON.stringify(data),
         contentType: "application/json",
         success: function (response) {
             console.log("Status berhasil diperbarui:", response);
@@ -225,29 +228,27 @@ $("#close-modal-btn").click(function () {
 
 // Fungsi untuk menambahkan tugas baru
 function addNewTask(taskName, projectId) {
-    // Kirim permintaan POST ke API untuk menambahkan tugas baru
+    const status = "1"; // Status "To-do"
+
+    // Data yang dikirim
+    const data = {
+        nama_task: taskName,
+        status: status, // Harus berisi nilai yang sesuai
+        idproject: projectId, // Harus berisi nilai yang valid untuk ID proyek
+    };
+
+    console.log("Data yang dikirim ke API:", data); // Debugging: menampilkan data yang dikirim
+
     $.ajax({
-        url: "http://127.0.0.1:8000/api/tasks", // Endpoint API untuk menambahkan task
+        url: "http://127.0.0.1:8000/api/tasks",
         type: "POST",
-        data: JSON.stringify({
-            nama_task: taskName, // Nama tugas
-            status: "1", // Status awal tugas adalah "To-do"
-            idproject: projectId, // ID proyek yang dipilih
-        }),
+        data: JSON.stringify(data), // Pastikan mengirimkan data dalam format JSON
         contentType: "application/json",
         success: function (response) {
             console.log("Task berhasil ditambahkan:", response);
-
-            location.reload();
-
-            // Tambahkan tugas ke dalam kanban di halaman
-            // addTaskToKanban(response.idtask, taskName, projectId);
-
-            // Tutup modal setelah berhasil menambahkan
-            $("#modal").addClass("hidden");
-
-            // Clear input field setelah task ditambahkan
-            $("#taskname").val(""); // Mengosongkan input taskname
+            location.reload(); // Me-refresh halaman setelah sukses
+            $("#modal").addClass("hidden"); // Menyembunyikan modal
+            $("#taskname").val(""); // Mengosongkan input field
         },
         error: function (xhr, status, error) {
             console.error("Gagal menambahkan tugas:", error);
@@ -302,7 +303,7 @@ function deleteTask(taskId) {
         error: function (xhr, status, error) {
             console.error("Gagal menghapus task:", error);
             console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
-        }
+        },
     });
 }
 
@@ -313,3 +314,110 @@ $(document).on("click", ".delete-btn", function () {
         deleteTask(taskId); // Panggil fungsi untuk menghapus task
     }
 });
+
+// Menambahkan event listener untuk tombol edit
+$(document).on("click", ".edit-btn", function () {
+    const taskId = $(this).closest(".draggable-item").data("task-id"); // Ambil task ID
+    const taskName = $(this).closest(".draggable-item").text().trim(); // Ambil nama task
+    const status = $(this).closest(".draggable-item").data("status");
+
+    // Isi modal edit dengan nama tugas yang dipilih
+    $("#taskname-edit").val(taskName);
+
+    // Simpan ID tugas yang akan diupdate
+    $("#modal-edit").data("task-id", taskId);
+
+    $("#modal-edit").data("status", status); // Simpan status di modal
+
+    // Tampilkan modal edit
+    $("#modal-edit").removeClass("hidden");
+});
+
+// Menutup modal edit ketika tombol "Batal" diklik
+$("#close-modal-edit").click(function () {
+    $("#modal-edit").addClass("hidden");
+});
+
+// Menambahkan event listener untuk tombol simpan pada modal edit
+$("#simpan-btn").click(function () {
+    const taskId = $("#modal-edit").data("task-id"); // Ambil ID tugas dari data-modal-edit
+    const taskName = $("#taskname-edit").val().trim(); // Ambil nama tugas dari input field
+
+    // Cek jika nama tugas tidak kosong
+    if (taskName) {
+        // Panggil fungsi untuk memperbarui tugas
+        updateTask(taskId, taskName);
+
+
+    } else {
+        alert("Nama tugas tidak boleh kosong");
+    }
+});
+
+// Fungsi untuk memperbarui tugas
+function updateTask(taskId, taskName) {
+    const projectId = window.location.pathname.split("/").pop(); // ID proyek
+
+    // Kirim permintaan PUT ke API untuk memperbarui tugas
+    $.ajax({
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
+        type: "PUT",
+        data: JSON.stringify({
+            nama_task: taskName, // Nama tugas baru
+            idproject: projectId, // ID proyek
+        }),
+        contentType: "application/json",
+        success: function (response) {
+            console.log("Task berhasil diperbarui:", response);
+
+            // Perbarui task card di UI setelah berhasil update
+            const taskElement = $(`[data-task-id=${taskId}]`);
+            taskElement.text(taskName); // Update nama task
+
+            // Pastikan tombol edit dan delete tetap ada
+            addEditDeleteButtons(taskElement); // Fungsi untuk menambahkan tombol edit/delete
+
+            // Inisialisasi ulang draggable untuk task yang diperbarui
+            init_draggable(taskElement);
+
+            // Tutup modal setelah berhasil update
+            $("#modal-edit").addClass("hidden");
+
+            location.reload();
+        },
+        error: function (xhr, status, error) {
+            console.error("Gagal memperbarui task:", error);
+            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+        },
+    });
+}
+
+// Fungsi untuk menambahkan tombol edit dan delete pada task
+function addEditDeleteButtons(taskElement) {
+    // Cek apakah div edit-delete sudah ada
+    if (!taskElement.find(".edit-delete").length) {
+        const editDeleteDiv = document.createElement("div");
+        editDeleteDiv.classList.add("edit-delete");
+
+        // Membuat tombol untuk ikon edit
+        const editButton = document.createElement("button");
+        editButton.classList.add("edit-btn");
+        const editIcon = document.createElement("i");
+        editIcon.classList.add("ph-bold", "ph-pencil-simple");
+        editButton.appendChild(editIcon);
+
+        // Membuat tombol untuk ikon delete
+        const deleteButton = document.createElement("button");
+        deleteButton.classList.add("delete-btn");
+        const trashIcon = document.createElement("i");
+        trashIcon.classList.add("ph-bold", "ph-trash");
+        deleteButton.appendChild(trashIcon);
+
+        // Menambahkan tombol ke dalam div edit-delete
+        editDeleteDiv.appendChild(editButton);
+        editDeleteDiv.appendChild(deleteButton);
+
+        // Menambahkan div edit-delete ke dalam task-card
+        taskElement.append(editDeleteDiv);
+    }
+}
