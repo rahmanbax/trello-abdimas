@@ -83,26 +83,25 @@ $("#sortable3").sortable({
 
 // Fungsi untuk menginisialisasi draggable pada widget
 function init_draggable(widget) {
-  if (widget.data('ui-draggable')) {
-      widget.draggable('destroy'); // Hancurkan instans draggable sebelumnya
-  }
+    if (widget.data("ui-draggable")) {
+        widget.draggable("destroy"); // Hancurkan instans draggable sebelumnya
+    }
 
-  widget.draggable({
-      connectToSortable: '#sortable1, #sortable2, #sortable3',
-      stack: '.draggable-item',
-      revert: true,
-      revertDuration: 200,
-      start: function(event, ui) {
-          // Disable sortable untuk semua elemen ketika drag dimulai
-          $('#sortable1, #sortable2, #sortable3').sortable('disable');
-      },
-      stop: function(event, ui) {
-          // Enable semua sortable setelah drag selesai
-          $('#sortable1, #sortable2, #sortable3').sortable('enable');
-      }
-  });
+    widget.draggable({
+        connectToSortable: "#sortable1, #sortable2, #sortable3",
+        stack: ".draggable-item",
+        revert: true,
+        revertDuration: 200,
+        start: function (event, ui) {
+            // Disable sortable untuk semua elemen ketika drag dimulai
+            $("#sortable1, #sortable2, #sortable3").sortable("disable");
+        },
+        stop: function (event, ui) {
+            // Enable semua sortable setelah drag selesai
+            $("#sortable1, #sortable2, #sortable3").sortable("enable");
+        },
+    });
 }
-
 
 // Fungsi untuk mengupdate status menggunakan AJAX
 function updateStatus(item, status) {
@@ -171,6 +170,31 @@ document.addEventListener("DOMContentLoaded", function () {
                     liElement.textContent = `${task.nama_task}`;
                     liElement.dataset.taskId = task.idtask; // Menyimpan ID task dalam data-task-id
                     liElement.dataset.projectId = task.idproject; // Menyimpan ID project dalam data-project-id
+
+                    // Membuat elemen div untuk edit dan delete
+                    const editDeleteDiv = document.createElement("div");
+                    editDeleteDiv.classList.add("edit-delete");
+
+                    // Membuat tombol untuk ikon edit
+                    const editButton = document.createElement("button");
+                    editButton.classList.add("edit-btn");
+                    const editIcon = document.createElement("i");
+                    editIcon.classList.add("ph-bold", "ph-pencil-simple");
+                    editButton.appendChild(editIcon);
+
+                    // Membuat tombol untuk ikon delete
+                    const deleteButton = document.createElement("button");
+                    deleteButton.classList.add("delete-btn");
+                    const trashIcon = document.createElement("i");
+                    trashIcon.classList.add("ph-bold", "ph-trash");
+                    deleteButton.appendChild(trashIcon);
+
+                    // Menambahkan tombol ke dalam div edit-delete
+                    editDeleteDiv.appendChild(editButton);
+                    editDeleteDiv.appendChild(deleteButton);
+
+                    // Menambahkan div edit-delete ke dalam task-card (liElement)
+                    liElement.appendChild(editDeleteDiv);
 
                     // Menambahkan item ke sortable berdasarkan statusnya
                     if (task.status === "1") {
@@ -260,5 +284,32 @@ $("#tambah-btn").click(function () {
         addNewTask(taskName, projectId);
     } else {
         alert("Nama tugas tidak boleh kosong");
+    }
+});
+
+// Fungsi untuk menghapus task
+function deleteTask(taskId) {
+    // Kirim permintaan DELETE ke API untuk menghapus task
+    $.ajax({
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk menghapus task
+        type: "DELETE",
+        success: function (response) {
+            console.log("Task berhasil dihapus:", response);
+
+            // Hapus elemen task dari tampilan
+            $(`[data-task-id=${taskId}]`).remove();
+        },
+        error: function (xhr, status, error) {
+            console.error("Gagal menghapus task:", error);
+            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+        }
+    });
+}
+
+// Menambahkan event listener untuk tombol delete
+$(document).on("click", ".delete-btn", function () {
+    const taskId = $(this).closest(".draggable-item").data("task-id"); // Ambil task ID
+    if (confirm("Hapus tugas ini?")) {
+        deleteTask(taskId); // Panggil fungsi untuk menghapus task
     }
 });

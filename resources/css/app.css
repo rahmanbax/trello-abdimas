@@ -4,7 +4,12 @@
 
 @layer components {
     .task-card {
-        @apply w-auto p-3 rounded-md items-center flex justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800;
+        @apply break-all max-w-full flex gap-3 p-3 rounded-md min-h-fit max-h-fit justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800 items-start;
+    }
+
+    .task-card
+    .edit-delete {
+        @apply flex gap-2 text-lg;
     }
 
     .project-card {
