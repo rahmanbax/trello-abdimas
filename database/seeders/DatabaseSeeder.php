@@ -16,8 +16,7 @@ class DatabaseSeeder extends Seeder
         // Panggil seeder
         $this->call([
             ProjectSeeder::class,
-            TaskSeeder::class,
-            UserSeeder::class,
+            TaskSeeder::class, 
         ]);
     }
 }

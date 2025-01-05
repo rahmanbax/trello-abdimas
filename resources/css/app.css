@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .task-card {
+        @apply break-all max-w-full flex gap-3 p-3 rounded-md min-h-fit max-h-fit justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800 items-start;
+    }
+
+    .task-card
+    .edit-delete {
+        @apply flex gap-2 text-lg;
+    }
+
+    .project-card {
+        @apply bg-slate-600 hover:bg-slate-500 text-lg text-slate-200 rounded-lg p-3 h-24;
+    }
+
+    body {
+        @apply overflow-x-hidden;
+    }
+
+    /* ... */
+}

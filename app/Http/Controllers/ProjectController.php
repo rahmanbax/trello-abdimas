@@ -87,4 +87,15 @@ class ProjectController extends Controller
 
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
+
+    public function showDetail($id)
+    {
+        $project = Project::with('tasks')->find($id);  // Mengambil proyek beserta tugasnya
+
+        if (!$project) {
+            return redirect()->route('projects.index')->with('error', 'Project not found');
+        }
+
+        return view('project.detail', compact('project'));  // Mengirim data proyek ke view detail
+    }
 }
