@@ -27,7 +27,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+<<<<<<< HEAD
 // Redirect to Login Page if not authenticated (optional)
 Route::get('/', function () {
     return redirect()->route('login'); 
+=======
+
+Route::get('/project', function () {
+    return view('project.index'); 
+>>>>>>> 1bb71edf16ce6da59b21651bdf421317d768b6e8
+});
+
+Route::get('/project/{id}', function () {
+    return view('project.detail'); 
 });
