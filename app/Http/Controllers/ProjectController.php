@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Project;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
@@ -12,7 +13,12 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::with('tasks')->get();
+        // Mengambil ID user yang sedang login
+        $userId = Auth::id();
+
+        // Mengambil proyek yang dimiliki oleh user yang sedang login
+        $projects = Project::where('iduser', $userId)->with('tasks')->get();
+
         return response()->json($projects, 200);
     }
 
@@ -25,6 +31,10 @@ class ProjectController extends Controller
             'nama_project' => 'required|string|max:255',
         ]);
 
+        // Menambahkan iduser yang berasal dari user yang sedang login
+        $validated['iduser'] = Auth::id();
+
+        // Membuat proyek baru dengan ID user
         $project = Project::create($validated);
 
         return response()->json([
@@ -32,21 +42,27 @@ class ProjectController extends Controller
             'project' => $project,
         ], 201);
     }
-    
+
+
 
     /**
      * Retrieve a single project by its ID.
      */
     public function show($id)
     {
-        $project = Project::with('tasks')->find($id);
+        $userId = Auth::id(); // Mengambil ID user yang sedang login
+        $project = Project::where('idproject', $id)
+            ->where('iduser', $userId)  // Memastikan proyek milik user yang login
+            ->with('tasks')
+            ->first();
 
         if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
+            return response()->json(['message' => 'Project not found or you do not have access to this project'], 404);
         }
 
         return response()->json($project, 200);
     }
+
 
     /**
      * Update an existing project.
@@ -77,10 +93,13 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        $project = Project::find($id);
+        $userId = Auth::id(); // Mengambil ID user yang sedang login
+        $project = Project::where('idproject', $id)
+            ->where('iduser', $userId)  // Memastikan proyek milik user yang login
+            ->first();
 
         if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
+            return response()->json(['message' => 'Project not found or you do not have access to this project'], 404);
         }
 
         $project->delete();
@@ -88,14 +107,19 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
+
     public function showDetail($id)
     {
-        $project = Project::with('tasks')->find($id);  // Mengambil proyek beserta tugasnya
+        $userId = Auth::id(); // Mengambil ID user yang sedang login
+        $project = Project::where('idproject', $id)
+            ->where('iduser', $userId)  // Memastikan proyek milik user yang login
+            ->with('tasks')
+            ->first();
 
         if (!$project) {
-            return redirect()->route('projects.index')->with('error', 'Project not found');
+            return redirect()->route('projects.index')->with('error', 'Project not found or you do not have access to this project');
         }
 
-        return view('project.detail', compact('project'));  // Mengirim data proyek ke view detail
+        return view('project.detail', compact('project'));
     }
 }
