@@ -9,9 +9,18 @@ class Project extends Model
 {
     use HasFactory;
 
-    protected $table = 'projects'; // Nama tabel
-    protected $primaryKey = 'idproject'; // Primary key
-    protected $fillable = ['nama_project']; // Kolom yang bisa diisi secara massal
+    protected $table = 'projects';
+    protected $primaryKey = 'idproject';
+    protected $fillable = ['nama_project', 'iduser']; // Pastikan 'iduser' termasuk dalam $fillable
+
+    /**
+     * Relasi ke model User
+     * Setiap project dimiliki oleh satu user (Many to One).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'iduser'); // Menggunakan kolom 'iduser' sebagai FK
+    }
 
     /**
      * Relasi ke model Task
@@ -22,3 +31,4 @@ class Project extends Model
         return $this->hasMany(Task::class, 'idproject', 'idproject');
     }
 }
+
