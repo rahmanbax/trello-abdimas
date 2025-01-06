@@ -13,14 +13,16 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        // Mengambil ID user yang sedang login
         $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['message' => 'User not authenticated'], 401); // Pastikan ID pengguna ada
+        }
 
-        // Mengambil proyek yang dimiliki oleh user yang sedang login
         $projects = Project::where('iduser', $userId)->with('tasks')->get();
-
         return response()->json($projects, 200);
     }
+
+
 
     /**
      * Create a new project.
@@ -50,9 +52,9 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        $userId = Auth::id(); // Mengambil ID user yang sedang login
+        $userId = Auth::id();
         $project = Project::where('idproject', $id)
-            ->where('iduser', $userId)  // Memastikan proyek milik user yang login
+            ->where('iduser', $userId)
             ->with('tasks')
             ->first();
 
@@ -60,8 +62,12 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project not found or you do not have access to this project'], 404);
         }
 
+        // Debugging: Cek proyek yang diambil
+        dd($project);
+
         return response()->json($project, 200);
     }
+
 
 
     /**
