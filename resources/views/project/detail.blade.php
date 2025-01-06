@@ -25,7 +25,7 @@
 
       </div>
     </div>
-    <div class="mt-12 grid grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="mt-12 grid grid-cols-2 lg:grid-cols-3 gap-12">
       <!-- To-do -->
       <div class="connectedSortable ease-in h-fit">
         <h2 class="text-2xl font-semibold">To Do's</h2>
@@ -94,7 +94,7 @@
     <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
     <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all p-4 w-[400px]">
+        <div class="relative transform overflow-hidden bg-white text-left shadow-xl transition-all p-4 w-[400px]">
           <div class="">
             <div class="text-left">
               <h3 class="text-base font-semibold text-gray-900" id="modal-title">Edit nama tugas</h3>
@@ -103,7 +103,7 @@
                   type="text"
                   id="taskname-edit"
                   name="taskname-edit"
-                  class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Nama tugas"
                   aria-labelledby="taskname-edit"
                   autocomplete="off" />
@@ -111,8 +111,8 @@
             </div>
           </div>
           <div class="bg-gray-50 flex sm:flex-row-reverse mt-4">
-            <button id="simpan-btn" type="button" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Simpan</button>
-            <button id="close-modal-edit" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100 sm:mt-0 sm:w-auto">Batal</button>
+            <button id="simpan-btn" type="button" class="inline-flex w-full justify-center bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Simpan</button>
+            <button id="close-modal-edit" type="button" class="mt-3 inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100 sm:mt-0 sm:w-auto">Batal</button>
           </div>
         </div>
       </div>
