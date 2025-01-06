@@ -75,9 +75,22 @@ class AuthController extends Controller
     /**
      * Logout a user (invalidate the token).
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        auth()->logout();
-        return response()->json(['message' => 'Logged out successfully']);
+        try {
+            // Mendapatkan token dari header Authorization
+            $token = $request->header('Authorization');
+
+            if (!$token) {
+                return response()->json(['error' => 'Token is required'], 400);
+            }
+
+            // Menghapus (invalidate) token JWT
+            JWTAuth::invalidate($token);
+
+            return response()->json(['message' => 'Logged out successfully']);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not logout'], 500);
+        }
     }
 }
