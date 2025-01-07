@@ -445,3 +445,60 @@ document.addEventListener("click", function (event) {
         menuButton.setAttribute("aria-expanded", "false");
     }
 });
+
+// Menambahkan event listener untuk tombol edit proyek
+$(document).on("click", "#menu-item-0", function () {
+    const projectId = window.location.pathname.split("/").pop(); // Ambil ID proyek dari URL
+    const projectName = $("#project-name").text().trim(); // Ambil nama proyek dari tampilan
+
+    // Isi modal edit dengan nama proyek yang dipilih
+    $("#proyek-edit").val(projectName);
+
+    // Simpan ID proyek di modal untuk referensi saat update
+    $("#modal-edit-proyek").data("project-id", projectId);
+
+    // Tampilkan modal edit proyek
+    $("#modal-edit-proyek").removeClass("hidden");
+});
+
+// Event listener untuk tombol simpan pada modal edit proyek
+$("#simpan-btn-proyek").click(function () {
+    const projectId = $("#modal-edit-proyek").data("project-id"); // Ambil ID proyek dari data di modal
+    const projectName = $("#proyek-edit").val().trim(); // Ambil nama proyek baru dari input field
+
+    // Validasi nama proyek tidak kosong
+    if (projectName) {
+        updateProject(projectId, projectName); // Panggil fungsi untuk update proyek
+    } else {
+        alert("Nama proyek tidak boleh kosong"); // Tampilkan pesan jika input kosong
+    }
+});
+
+// Fungsi untuk memperbarui proyek menggunakan AJAX
+function updateProject(projectId, projectName) {
+    $.ajax({
+        url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk update proyek
+        type: "PUT",
+        data: JSON.stringify({ nama_project: projectName }), // Data untuk diperbarui
+        contentType: "application/json",
+        success: function (response) {
+            console.log("Proyek berhasil diperbarui:", response);
+
+            // Tutup modal setelah berhasil update
+            $("#modal-edit-proyek").addClass("hidden");
+
+            // Opsional: Refresh halaman atau tampilkan notifikasi sukses
+            location.reload();
+        },
+        error: function (xhr, status, error) {
+            console.error("Gagal memperbarui proyek:", error);
+            console.log("Respons dari server:", xhr.responseText); // Debugging error
+        },
+    });
+}
+
+// Menutup modal ketika tombol "Batal" diklik
+$("#close-modal-edit-proyek").click(function () {
+    $("#modal-edit-proyek").addClass("hidden");
+});
+
