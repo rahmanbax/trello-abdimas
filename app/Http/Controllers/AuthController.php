@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
@@ -15,7 +14,8 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $request->validate([
+        // Validasi data input
+        $validateData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
@@ -23,74 +23,68 @@ class AuthController extends Controller
 
         // Membuat user baru
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validateData['name'], // Perbaikan array key
+            'email' => $validateData['email'], // Perbaikan array key
+            'password' => Hash::make($validateData['password']), // Perbaikan array key
         ]);
 
         // Menghasilkan token JWT untuk pengguna baru
-        $token = JWTAuth::fromUser($user);
+        $token = auth('api')->login($user);
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'token' => $token
-        ]);
+        return $this->respondWithToken($token);
     }
 
     /**
-     * Login a user and generate JWT token.
+     * Login user.
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        // Validasi kredensial
+        $credentials = $request->only(['email', 'password']);
 
-        $credentials = $request->only('email', 'password');
-
-        try {
-            // Coba login dan ambil token JWT
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not create token'], 500);
+        // Autentikasi pengguna
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        return $this->respondWithToken($token);
+    }
+
+    /**
+     * Get the authenticated User.
+     */
+    public function me()
+    {
+        return response()->json(auth('api')->user());
+    }
+
+    /**
+     * Log the user out (Invalidate the token).
+     */
+    public function logout()
+    {
+        auth('api')->logout();
+
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    /**
+     * Refresh a token.
+     */
+    public function refresh()
+    {
+        return $this->respondWithToken(auth('api')->refresh());
+    }
+
+    /**
+     * Get the token array structure.
+     */
+    protected function respondWithToken($token)
+    {
         return response()->json([
-            'message' => 'Login successful',
-            'token' => $token
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60, // TTL default dalam menit
         ]);
-    }
-
-    /**
-     * Get the authenticated user.
-     */
-    public function user(Request $request)
-    {
-        return response()->json($request->user());
-    }
-
-    /**
-     * Logout a user (invalidate the token).
-     */
-    public function logout(Request $request)
-    {
-        try {
-            // Mendapatkan token dari header Authorization
-            $token = $request->header('Authorization');
-
-            if (!$token) {
-                return response()->json(['error' => 'Token is required'], 400);
-            }
-
-            // Menghapus (invalidate) token JWT
-            JWTAuth::invalidate($token);
-
-            return response()->json(['message' => 'Logged out successfully']);
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not logout'], 500);
-        }
     }
 }
