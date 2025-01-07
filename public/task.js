@@ -502,3 +502,28 @@ $("#close-modal-edit-proyek").click(function () {
     $("#modal-edit-proyek").addClass("hidden");
 });
 
+// Fungsi untuk menghapus proyek
+function deleteProject(projectId) {
+    if (confirm("Apakah Anda yakin ingin menghapus proyek ini?")) {
+        $.ajax({
+            url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk delete proyek
+            type: "DELETE",
+            success: function (response) {
+                console.log("Proyek berhasil dihapus:", response);
+
+                // Redirect ke halaman utama atau halaman lain setelah proyek dihapus
+                window.location.href = "/project"; // Sesuaikan URL sesuai kebutuhan
+            },
+            error: function (xhr, status, error) {
+                console.error("Gagal menghapus proyek:", error);
+                console.log("Respons dari server:", xhr.responseText); // Debugging error
+            },
+        });
+    }
+}
+
+// Menambahkan event listener untuk tombol delete proyek
+$(document).on("click", "#menu-item-1", function () {
+    const projectId = window.location.pathname.split("/").pop(); // Ambil ID proyek dari URL
+    deleteProject(projectId); // Panggil fungsi deleteProject
+});
