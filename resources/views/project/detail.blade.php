@@ -13,15 +13,29 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css">
 </head>
 
-<body class="bg-slate-50">
+<body class="bg-slate-100">
   <div class="my-6 mx-5 lg:mx-20 ">
     <div class="flex justify-between bg-white p-4 outline outline-1 outline-slate-200 shadow-md">
       <h1 id="project-name" class="font-semibold text-3xl"></h1>
       <div class="flex gap-3 items-center ">
-        <button id="add-task-btn" class="flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah tugas</button>
-        <div class="h-full w-10 items-center justify-center flex border-slate-200 bg-white hover:bg-slate-100 border-2">
-          <i class="ph-bold ph-dots-three "></i>
+        <button id="add-task-btn" class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah tugas</button>
+
+        <div class="relative inline-block">
+          <div>
+            <button type="button" class="h-10 w-10 items-center justify-center flex border-slate-200 bg-white hover:bg-slate-100 border-2" id="menu-button" aria-expanded="false" aria-haspopup="true">
+              <i class="ph-bold ph-dots-three "></i>
+            </button>
+          </div>
+
+          <!-- Dropdown menu -->
+          <div id="dropdown-menu" class="hidden absolute right-0 z-10 mt-3 w-44 origin-top-right bg-white shadow-lg ring-1 ring-black/5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+            <div class="p-1" role="none">
+              <button class="font-medium flex gap-2 items-center text-slate-700 text-sm px-4 py-2 hover:bg-slate-100 w-full" role="menuitem" tabindex="-1" id="menu-item-0"><i class="ph-bold ph-pencil-simple"></i>Edit proyek</button>
+              <button class="font-medium flex gap-2 items-center text-red-500 text-sm px-4 py-2 hover:bg-slate-100 w-full" role="menuitem" tabindex="-1" id="menu-item-1"><i class="ph-bold ph-trash"></i>Hapus proyek</button>
+            </div>
+          </div>
         </div>
+
 
       </div>
     </div>
@@ -56,6 +70,7 @@
 
     </div>
   </div>
+
 
   <!-- MODAL BUAT -->
   <div id="modal" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">

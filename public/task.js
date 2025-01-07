@@ -347,8 +347,6 @@ $("#simpan-btn").click(function () {
     if (taskName) {
         // Panggil fungsi untuk memperbarui tugas
         updateTask(taskId, taskName);
-
-
     } else {
         alert("Nama tugas tidak boleh kosong");
     }
@@ -421,3 +419,29 @@ function addEditDeleteButtons(taskElement) {
         taskElement.append(editDeleteDiv);
     }
 }
+
+// Ambil referensi ke tombol dan dropdown menu
+const menuButton = document.getElementById("menu-button");
+const dropdownMenu = document.getElementById("dropdown-menu");
+
+// Fungsi untuk toggle visibility dari dropdown menu
+menuButton.addEventListener("click", function () {
+    const isExpanded = menuButton.getAttribute("aria-expanded") === "true";
+
+    // Toggle dropdown visibility
+    dropdownMenu.classList.toggle("hidden", isExpanded);
+
+    // Update atribut aria-expanded
+    menuButton.setAttribute("aria-expanded", !isExpanded);
+});
+
+// Klik di luar dropdown menu untuk menutup menu
+document.addEventListener("click", function (event) {
+    if (
+        !menuButton.contains(event.target) &&
+        !dropdownMenu.contains(event.target)
+    ) {
+        dropdownMenu.classList.add("hidden");
+        menuButton.setAttribute("aria-expanded", "false");
+    }
+});

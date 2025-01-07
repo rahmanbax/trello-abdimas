@@ -20,13 +20,13 @@
             <div class="flex gap-4">
                 <p>Nama User</p>
                 <p class="text-slate-300">|</p>
-                <button class="text-red-500">Logout</button>
+                <button class="font-medium text-red-500">Logout</button>
             </div>
         </div>
     </header>
 
     <div class="my-6 mx-5 lg:mx-20">
-        <button id="add-project-btn" class="place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button>
+        <button id="add-project-btn" class="font-medium place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button>
 
         <div id="project-container" class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-6 gap-y-6">
             <!-- <div class="project-card"></div> -->
