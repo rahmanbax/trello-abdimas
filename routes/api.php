@@ -13,18 +13,23 @@ Route::apiResource('tasks', TaskController::class);
 // Rute untuk autentikasi
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
-Route::middleware('auth:api')->get('user', [AuthController::class, 'user']);
-Route::middleware('auth:api')->post('logout', [AuthController::class, 'logout']);
 
 // Rute grup untuk autentikasi
-Route::group(['prefix' => 'auth'], function ($router) {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']);
-});
-
-// Rute dengan middleware untuk autentikasi
-Route::middleware(['auth:api'])->group(function () {
-    Route::post('me', [AuthController::class, 'me']);
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('user', [AuthController::class, 'user']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::get('projects', [ProjectController::class, 'index']); // Example: Fetching all projects (or customize as needed)
+    Route::get('project', [ProjectController::class, 'show']); // Example: Fetching a specific project (or customize as needed)
 });
+
+
+// Rute untuk register dan login
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+
+// Rute untuk profil pengguna yang terautentikasi
+Route::middleware('auth:api')->get('user', [AuthController::class, 'userProfile']);
+Route::middleware('auth:api')->post('logout', [AuthController::class, 'logout']);
+Route::middleware('auth:api')->post('refresh', [AuthController::class, 'refresh']);
+Route::post('auth/login', [AuthController::class, 'login']);

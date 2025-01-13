@@ -1,8 +1,18 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const apiEndpoint = "http://127.0.0.1:8000/api/projects";
 
+    // Ambil token dari localStorage (atau sumber lain yang sesuai)
+    const token = localStorage.getItem("authToken");
+
     try {
-        const response = await fetch(apiEndpoint);
+        const response = await fetch(apiEndpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // Menambahkan token ke header
+            },
+        });
+
         const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
@@ -51,11 +61,14 @@ $("#close-modal-btn").click(function () {
 
 // Fungsi untuk menambahkan tugas baru
 async function addNewProject(projectName) {
+    const token = localStorage.getItem("authToken"); // Ambil token dari localStorage
+
     try {
         const response = await fetch("http://127.0.0.1:8000/api/projects", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // Menambahkan token ke header
             },
             body: JSON.stringify({
                 nama_project: projectName, // Nama proyek yang dimasukkan oleh pengguna

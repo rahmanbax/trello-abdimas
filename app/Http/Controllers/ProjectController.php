@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class ProjectController extends Controller
 {
     /**
-     * Fetch all projects with their associated tasks.
+     * Fetch all project with their associated tasks.
      */
     public function index()
     {
@@ -18,17 +18,15 @@ class ProjectController extends Controller
             return response()->json(['message' => 'User not authenticated'], 401); // Pastikan ID pengguna ada
         }
 
-        $projects = Project::where('iduser', $userId)->with('tasks')->get();
-        return response()->json($projects, 200);
+        $project = Project::where('iduser', $userId)->with('tasks')->get();
+        return response()->json($project, 200);
     }
 
 
 
-    /**
-     * Create a new project.
-     */
     public function store(Request $request)
     {
+        // Validasi input untuk nama proyek
         $validated = $request->validate([
             'nama_project' => 'required|string|max:255',
         ]);
@@ -36,15 +34,15 @@ class ProjectController extends Controller
         // Menambahkan iduser yang berasal dari user yang sedang login
         $validated['iduser'] = Auth::id();
 
-        // Membuat proyek baru dengan ID user
+        // Membuat proyek baru dengan data yang telah divalidasi
         $project = Project::create($validated);
 
+        // Mengirimkan respons JSON dengan status sukses
         return response()->json([
             'message' => 'Project created successfully',
             'project' => $project,
         ], 201);
     }
-
 
 
     /**
@@ -123,7 +121,7 @@ class ProjectController extends Controller
             ->first();
 
         if (!$project) {
-            return redirect()->route('projects.index')->with('error', 'Project not found or you do not have access to this project');
+            return redirect()->route('project.index')->with('error', 'Project not found or you do not have access to this project');
         }
 
         return view('project.detail', compact('project'));

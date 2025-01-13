@@ -41,7 +41,7 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
-    public function projects()
+    public function project()
     {
         return $this->hasMany(Project::class, 'iduser'); // Menggunakan kolom 'iduser' sebagai FK
     }
