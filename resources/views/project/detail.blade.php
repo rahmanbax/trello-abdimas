@@ -142,7 +142,7 @@
         <div class="relative transform overflow-hidden bg-white text-left shadow-xl transition-all p-4 w-[400px]">
           <div class="">
             <div class="text-left">
-              <h3 class="text-base font-semibold text-gray-900" id="modal-title">Edit nama tugas</h3>
+              <h3 class="text-base font-semibold text-gray-900" id="modal-title">Edit nama proyek</h3>
               <div class="mt-2">
                 <input
                   type="text"
