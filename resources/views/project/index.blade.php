@@ -19,15 +19,29 @@
         <div class="mx-20 flex justify-between items-center">
             <a href=""><img src="{{ asset('assets/images/procodecg-logo.png') }}" alt="ProCodeCG Logo" width="140"></a>
             <div class="flex gap-4 items-center">
-                <p id="user-name">Nama User</p>
-                <p class="text-slate-300">|</p>
-                <button id="logout-btn" class="font-medium text-red-500 py-2 px-4 hover:bg-red-50">Logout</button>
-            </div>
-        </div>
+
+                <div class="relative inline-block">
+                    <div>
+                        <div class="">
+                            <button type="button" class="px-4 py-2 items-center justify-center flex rounded-full gap-2 bg-white hover:bg-slate-100 font-medium" id="user-button" aria-expanded="false" aria-haspopup="true">
+                                <p id="user-name"></p><i class="ph ph-caret-down"></i>
+                            </button>
+                        </div>
+
+                        <!-- Dropdown user -->
+                        <div id="dropdown-user" class="hidden absolute right-0 z-10 mt-3 w-44 origin-top-right bg-white shadow-lg ring-1 ring-black/5 focus:outline-none" role="user" aria-orientation="vertical" aria-labelledby="user-button" tabindex="-1">
+                            <div class="p-1" role="none">
+                                <button class="font-medium flex gap-2 items-center text-red-500 text-base px-4 py-2 hover:bg-slate-100 w-full" role="menuitem" tabindex="-1" id="logout-btn"><i class="ph ph-sign-out"></i>Log out</button>
+                            </div>
+                        </div>
+
+                    </div>
     </header>
 
     <div class="my-6 mx-5 lg:mx-20">
-        <div class="flex justify-between"><h2 class="text-2xl font-semibold">Daftar Proyek</h2><button id="add-project-btn" class="font-medium place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button></div>
+        <div class="flex justify-between">
+            <h2 class="text-2xl font-semibold">Daftar Proyek</h2><button id="add-project-btn" class="font-medium place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button>
+        </div>
 
 
         <div id="project-container" class="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-6 gap-y-6">
@@ -52,7 +66,7 @@
                                     type="text"
                                     id="projectname"
                                     name="projectname"
-                                    class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Nama proyek"
                                     aria-labelledby="projectname"
                                     autocomplete="off" />

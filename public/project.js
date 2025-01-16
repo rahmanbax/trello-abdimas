@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const apiEndpoint = "http://127.0.0.1:8000/api/projects";
     const userEndpoint = "http://127.0.0.1:8000/api/users";
 
-    // Ambil token dari localStorage (misalnya, setelah login)
+    // Ambil token dari localStorage
     const token = localStorage.getItem("access_token");
 
     if (!token) {
@@ -28,7 +28,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const userData = await userResponse.json();
         // Menampilkan nama pengguna di halaman
-        document.getElementById("user-name").textContent = `Halo, ${userData.name}`;
+        document.getElementById(
+            "user-name"
+        ).textContent = `${userData.name}`;
 
         const response = await fetch(apiEndpoint, {
             method: "GET",
@@ -181,3 +183,29 @@ document
             console.error("Terjadi kesalahan saat logout:", error);
         }
     });
+
+// Ambil referensi ke tombol dan dropdown menu
+const userButton = document.getElementById("user-button");
+const dropdownUser = document.getElementById("dropdown-user");
+
+// Fungsi untuk toggle visibility dari dropdown menu
+userButton.addEventListener("click", function () {
+    const isExpanded = userButton.getAttribute("aria-expanded") === "true";
+
+    // Toggle dropdown visibility
+    dropdownUser.classList.toggle("hidden", isExpanded);
+
+    // Update atribut aria-expanded
+    userButton.setAttribute("aria-expanded", !isExpanded);
+});
+
+// Klik di luar dropdown menu untuk menutup menu
+document.addEventListener("click", function (event) {
+    if (
+        !userButton.contains(event.target) &&
+        !dropdownUser.contains(event.target)
+    ) {
+        dropdownUser.classList.add("hidden");
+        userButton.setAttribute("aria-expanded", "false");
+    }
+});

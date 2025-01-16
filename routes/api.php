@@ -7,12 +7,8 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 
-
-// Route::apiResource('projects', ProjectController::class);
-// Route::apiResource('tasks', TaskController::class);
-
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::apiResource('projects', ProjectController::class); // Menambahkan middleware auth:api
+    Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('users', UserController::class);
 });
