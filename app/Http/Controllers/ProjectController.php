@@ -1,19 +1,22 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Project;
+use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
+
     /**
      * Fetch all projects with their associated tasks.
      */
     public function index()
     {
-        $projects = Project::with('tasks')->get();
+        $user     = auth()->user();
+        $projects = Project::with('tasks')->where('iduser', $user->id)->get();
+
         return response()->json($projects, 200);
+
     }
 
     /**
@@ -21,18 +24,38 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_project' => 'required|string|max:255',
-        ]);
+        try {
+            // Validasi hanya untuk nama_project
+            $validated = $request->validate([
+                'nama_project' => 'required|string|max:255',
+            ]);
 
-        $project = Project::create($validated);
+            // Mengambil ID pengguna yang sedang login
+            $user = auth()->user();
 
-        return response()->json([
-            'message' => 'Project created successfully',
-            'project' => $project,
-        ], 201);
+            // Memastikan ID pengguna valid
+            if (! $user) {
+                return response()->json(['error' => 'User not authenticated'], 401);
+            }
+
+            // Membuat proyek baru dengan ID pengguna otomatis
+            $project = Project::create([
+                'nama_project' => $validated['nama_project'],
+                'iduser'       => $user->id, // Menggunakan ID pengguna yang sedang login
+            ]);
+
+            return response()->json([
+                'message' => 'Project created successfully',
+                'project' => $project,
+            ], 201);
+        } catch (\Exception $e) {
+            // Menangani error dengan memberikan informasi lebih jelas
+            return response()->json([
+                'error'   => 'Failed to create project',
+                'message' => $e->getMessage(), // Tambahkan pesan error
+            ], 500);
+        }
     }
-    
 
     /**
      * Retrieve a single project by its ID.
@@ -41,7 +64,7 @@ class ProjectController extends Controller
     {
         $project = Project::with('tasks')->find($id);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
@@ -55,7 +78,7 @@ class ProjectController extends Controller
     {
         $project = Project::find($id);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
@@ -71,7 +94,6 @@ class ProjectController extends Controller
         ]);
     }
 
-
     /**
      * Delete a project.
      */
@@ -79,7 +101,7 @@ class ProjectController extends Controller
     {
         $project = Project::find($id);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
@@ -90,12 +112,12 @@ class ProjectController extends Controller
 
     public function showDetail($id)
     {
-        $project = Project::with('tasks')->find($id);  // Mengambil proyek beserta tugasnya
+        $project = Project::with('tasks')->find($id); // Mengambil proyek beserta tugasnya
 
-        if (!$project) {
+        if (! $project) {
             return redirect()->route('projects.index')->with('error', 'Project not found');
         }
 
-        return view('project.detail', compact('project'));  // Mengirim data proyek ke view detail
+        return view('project.detail', compact('project')); // Mengirim data proyek ke view detail
     }
 }

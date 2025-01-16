@@ -5,30 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Project</title>
+    <title>ProCodeCG</title>
     @vite('resources/css/app.css')
     <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js" integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css">
+    <link rel="icon" href="{{ asset('assets/images/procodecg-logo2.png') }}" type="image/png">
 </head>
 
 <body class="bg-slate-100">
     <header class="bg-white py-4 border-b-2 border-slate-200">
         <div class="mx-20 flex justify-between items-center">
-            <h1 class="text-2xl font-semibold">Daftar Proyek</h1>
-            <div class="flex gap-4">
-                <p>Nama User</p>
+            <a href=""><img src="{{ asset('assets/images/procodecg-logo.png') }}" alt="ProCodeCG Logo" width="140"></a>
+            <div class="flex gap-4 items-center">
+                <p id="user-name">Nama User</p>
                 <p class="text-slate-300">|</p>
-                <button class="font-medium text-red-500">Logout</button>
+                <button id="logout-btn" class="font-medium text-red-500 py-2 px-4 hover:bg-red-50">Logout</button>
             </div>
         </div>
     </header>
 
     <div class="my-6 mx-5 lg:mx-20">
-        <button id="add-project-btn" class="font-medium place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button>
+        <div class="flex justify-between"><h2 class="text-2xl font-semibold">Daftar Proyek</h2><button id="add-project-btn" class="font-medium place-self-end flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm"><i class="ph-bold ph-plus"></i>Tambah proyek</button></div>
 
-        <div id="project-container" class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-6 gap-y-6">
+
+        <div id="project-container" class="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-6 gap-y-6">
             <!-- <div class="project-card"></div> -->
 
 

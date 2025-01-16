@@ -1,8 +1,47 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const apiEndpoint = "http://127.0.0.1:8000/api/projects";
+    const userEndpoint = "http://127.0.0.1:8000/api/users";
+
+    // Ambil token dari localStorage (misalnya, setelah login)
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        console.log("Token tidak ditemukan. Pastikan Anda sudah login.");
+        return;
+    }
 
     try {
-        const response = await fetch(apiEndpoint);
+        // Ambil data pengguna yang sedang login
+        const userResponse = await fetch(userEndpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Menambahkan token ke header
+            },
+        });
+
+        if (!userResponse.ok) {
+            throw new Error(
+                `Error ${userResponse.status}: ${userResponse.statusText}`
+            );
+        }
+
+        const userData = await userResponse.json();
+        // Menampilkan nama pengguna di halaman
+        document.getElementById("user-name").textContent = `Halo, ${userData.name}`;
+
+        const response = await fetch(apiEndpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Menambahkan token ke header
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
@@ -53,10 +92,18 @@ $("#close-modal-btn").click(function () {
 // Fungsi untuk menambahkan tugas baru
 async function addNewProject(projectName) {
     try {
+        const token = localStorage.getItem("access_token"); // Ambil token dari localStorage
+
+        // Jika token tidak ada, tampilkan error
+        if (!token) {
+            throw new Error("User is not authenticated");
+        }
+
         const response = await fetch("http://127.0.0.1:8000/api/projects", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Kirim token dalam header Authorization
             },
             body: JSON.stringify({
                 nama_project: projectName, // Nama proyek yang dimasukkan oleh pengguna
@@ -98,3 +145,39 @@ $("#tambah-btn").click(function () {
         alert("Nama proyek tidak boleh kosong!");
     }
 });
+
+document
+    .getElementById("logout-btn")
+    .addEventListener("click", async function () {
+        try {
+            const token = localStorage.getItem("access_token");
+
+            if (!token) {
+                console.log("User tidak terautentikasi");
+                return;
+            }
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/api/auth/logout",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Logout gagal");
+            }
+
+            // Hapus token dari localStorage
+            localStorage.removeItem("access_token");
+
+            // Redirect ke halaman login
+            window.location.href = "/login"; // Ganti dengan route login yang sesuai
+        } catch (error) {
+            console.error("Terjadi kesalahan saat logout:", error);
+        }
+    });

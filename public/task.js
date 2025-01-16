@@ -117,11 +117,17 @@ function updateStatus(item, status) {
 
     console.log("Data yang dikirim untuk update status:", data); // Debugging
 
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
         url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "PUT",
         data: JSON.stringify(data),
-        contentType: "application/json",
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Status berhasil diperbarui:", response);
         },
@@ -139,8 +145,16 @@ document.addEventListener("DOMContentLoaded", function () {
     // Endpoint untuk mendapatkan nama proyek
     const projectApiEndpoint = `http://127.0.0.1:8000/api/projects/${projectId}`;
 
+    // Token (misalnya disimpan di localStorage atau cookie)
+    const token = localStorage.getItem("access_token"); // Ganti dengan cara yang sesuai untuk mendapatkan token
+
+    // Opsi untuk menambahkan token ke header
+    const headers = {
+        Authorization: `Bearer ${token}`,
+    };
+
     // Mengambil nama proyek menggunakan fetch
-    fetch(projectApiEndpoint)
+    fetch(projectApiEndpoint, { headers: headers })
         .then((response) => response.json())
         .then((data) => {
             if (data && data.nama_project) {
@@ -148,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("project-name").textContent =
                     data.nama_project;
                 // Update tag <title> dengan nama proyek
-                document.title = data.nama_project;
+                document.title = `${data.nama_project} | ProCodeCG`;
             } else {
                 console.error("Nama proyek tidak ditemukan");
             }
@@ -159,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const apiEndpoint = `http://127.0.0.1:8000/api/tasks?idproject=${projectId}`;
 
-    fetch(apiEndpoint)
+    fetch(apiEndpoint, { headers: headers })
         .then((response) => response.json())
         .then((data) => {
             if (Array.isArray(data) && data.length > 0) {
@@ -230,29 +244,34 @@ $("#close-modal-btn").click(function () {
 function addNewTask(taskName, projectId) {
     const status = "1"; // Status "To-do"
 
-    // Data yang dikirim
     const data = {
         nama_task: taskName,
-        status: status, // Harus berisi nilai yang sesuai
-        idproject: projectId, // Harus berisi nilai yang valid untuk ID proyek
+        status: status,
+        idproject: projectId,
     };
 
-    console.log("Data yang dikirim ke API:", data); // Debugging: menampilkan data yang dikirim
+    console.log("Data yang dikirim ke API:", data); // Debugging
+
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
 
     $.ajax({
         url: "http://127.0.0.1:8000/api/tasks",
         type: "POST",
-        data: JSON.stringify(data), // Pastikan mengirimkan data dalam format JSON
-        contentType: "application/json",
+        data: JSON.stringify(data),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil ditambahkan:", response);
-            location.reload(); // Me-refresh halaman setelah sukses
-            $("#modal").addClass("hidden"); // Menyembunyikan modal
-            $("#taskname").val(""); // Mengosongkan input field
+            location.reload();
+            $("#modal").addClass("hidden");
+            $("#taskname").val("");
         },
         error: function (xhr, status, error) {
             console.error("Gagal menambahkan tugas:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -290,19 +309,22 @@ $("#tambah-btn").click(function () {
 
 // Fungsi untuk menghapus task
 function deleteTask(taskId) {
-    // Kirim permintaan DELETE ke API untuk menghapus task
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk menghapus task
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "DELETE",
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil dihapus:", response);
-
-            // Hapus elemen task dari tampilan
             $(`[data-task-id=${taskId}]`).remove();
         },
         error: function (xhr, status, error) {
             console.error("Gagal menghapus task:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -356,36 +378,34 @@ $("#simpan-btn").click(function () {
 function updateTask(taskId, taskName) {
     const projectId = window.location.pathname.split("/").pop(); // ID proyek
 
-    // Kirim permintaan PUT ke API untuk memperbarui tugas
+    const data = {
+        nama_task: taskName,
+        idproject: projectId,
+    };
+
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "PUT",
-        data: JSON.stringify({
-            nama_task: taskName, // Nama tugas baru
-            idproject: projectId, // ID proyek
-        }),
-        contentType: "application/json",
+        data: JSON.stringify(data),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil diperbarui:", response);
-
-            // Perbarui task card di UI setelah berhasil update
             const taskElement = $(`[data-task-id=${taskId}]`);
             taskElement.text(taskName); // Update nama task
-
-            // Pastikan tombol edit dan delete tetap ada
-            addEditDeleteButtons(taskElement); // Fungsi untuk menambahkan tombol edit/delete
-
-            // Inisialisasi ulang draggable untuk task yang diperbarui
+            addEditDeleteButtons(taskElement);
             init_draggable(taskElement);
-
-            // Tutup modal setelah berhasil update
             $("#modal-edit").addClass("hidden");
-
             location.reload();
         },
         error: function (xhr, status, error) {
             console.error("Gagal memperbarui task:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -476,23 +496,25 @@ $("#simpan-btn-proyek").click(function () {
 
 // Fungsi untuk memperbarui proyek menggunakan AJAX
 function updateProject(projectId, projectName) {
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk update proyek
+        url: `http://127.0.0.1:8000/api/projects/${projectId}`,
         type: "PUT",
-        data: JSON.stringify({ nama_project: projectName }), // Data untuk diperbarui
-        contentType: "application/json",
+        data: JSON.stringify({ nama_project: projectName }),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Proyek berhasil diperbarui:", response);
-
-            // Tutup modal setelah berhasil update
             $("#modal-edit-proyek").addClass("hidden");
-
-            // Opsional: Refresh halaman atau tampilkan notifikasi sukses
             location.reload();
         },
         error: function (xhr, status, error) {
             console.error("Gagal memperbarui proyek:", error);
-            console.log("Respons dari server:", xhr.responseText); // Debugging error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -505,9 +527,16 @@ $("#close-modal-edit-proyek").click(function () {
 // Fungsi untuk menghapus proyek
 function deleteProject(projectId) {
     if (confirm("Apakah Anda yakin ingin menghapus proyek ini?")) {
+        const token = localStorage.getItem("access_token"); // Ambil token
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        };
+
         $.ajax({
             url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk delete proyek
             type: "DELETE",
+            headers: headers,
             success: function (response) {
                 console.log("Proyek berhasil dihapus:", response);
 

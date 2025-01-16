@@ -11,6 +11,7 @@
   <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js" integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css">
+  <link rel="icon" href="{{ asset('assets/images/procodecg-logo2.png') }}" type="image/png">
 </head>
 
 <body class="bg-slate-100">
@@ -44,7 +45,7 @@
       <div class="connectedSortable ease-in h-fit">
         <h2 class="text-2xl font-semibold">To Do's</h2>
         <!-- board card -->
-        <div id="sortable1" class="grid grid-rows-3 gap-4 mt-6">
+        <div id="sortable1" class="grid grid-rows-2 gap-4 mt-6">
           <!-- Card -->
         </div>
       </div>
@@ -52,7 +53,7 @@
       <!-- WIP Kanban -->
       <div class="connectedSortable ease-in h-fit">
         <h2 class="text-2xl font-semibold">In Progress</h2>
-        <div id="sortable2" class="grid grid-rows-3 gap-4 mt-6">
+        <div id="sortable2" class="grid grid-rows-2 gap-4 mt-6">
           <!-- Card -->
 
         </div>
@@ -61,7 +62,7 @@
       <!-- Complete Kanban -->
       <div class="connectedSortable ease-in h-fit">
         <h2 class="text-2xl font-semibold">Completed</h2>
-        <div id="sortable3" class="grid grid-rows-3 gap-4 mt-6">
+        <div id="sortable3" class="grid grid-rows-2 gap-4 mt-6">
           <!-- Card -->
           <!-- <div class="task-card"></div> -->
         </div>

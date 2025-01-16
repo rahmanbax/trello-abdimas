@@ -11,7 +11,7 @@ class Project extends Model
 
     protected $table = 'projects'; // Nama tabel
     protected $primaryKey = 'idproject'; // Primary key
-    protected $fillable = ['nama_project']; // Kolom yang bisa diisi secara massal
+    protected $fillable = ['nama_project','iduser']; // Kolom yang bisa diisi secara massal
 
     /**
      * Relasi ke model Task

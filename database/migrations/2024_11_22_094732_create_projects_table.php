@@ -16,7 +16,10 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id('idproject');
             $table->string('nama_project');
+            $table->unsignedBigInteger('iduser');  // Tambahkan kolom iduser
             $table->timestamps();
+
+            $table->foreign('iduser')->references('id')->on('users')->onDelete('cascade');  // Tambahkan foreign key
         });
     }
 
