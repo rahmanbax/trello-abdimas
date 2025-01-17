@@ -165,9 +165,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const userData = await userResponse.json();
         // Menampilkan nama pengguna di halaman
-        document.getElementById(
-            "user-name"
-        ).textContent = `${userData.name}`;
+        document.getElementById("user-name").textContent = `${userData.name}`;
 
         // Mengambil nama proyek
         const projectApiEndpoint = `http://127.0.0.1:8000/api/projects/${projectId}`;
