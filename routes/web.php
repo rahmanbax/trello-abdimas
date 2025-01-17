@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
+<<<<<<< HEAD
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProjectController;
@@ -25,6 +26,24 @@ Route::prefix('api')->group(function () {
         Route::delete('/projects/{id}', [ProjectController::class, 'destroy'])->name('project.destroy');
         Route::get('/projects/{id}/detail', [ProjectController::class, 'showDetail'])->name('project.showDetail');
     });
+=======
+
+
+Route::get('/project', function () {
+    return view('project.index');
+})->middleware('auth');
+
+Route::get('/project/{id}', function ($id) {
+    return view('project.detail', ['id' => $id]);
+});
+
+Route::get('/login', function () {
+    return view('auth.login');
+});
+
+Route::get('/register', function () {
+    return view('auth.register');
+>>>>>>> save
 });
 
 Route::get('/projects', [ProjectController::class, 'index'])->name('project');

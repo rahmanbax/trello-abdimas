@@ -117,11 +117,17 @@ function updateStatus(item, status) {
 
     console.log("Data yang dikirim untuk update status:", data); // Debugging
 
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
         url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "PUT",
         data: JSON.stringify(data),
-        contentType: "application/json",
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Status berhasil diperbarui:", response);
         },
@@ -132,89 +138,99 @@ function updateStatus(item, status) {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Ambil ID proyek dari URL
+document.addEventListener("DOMContentLoaded", async function () {
     const projectId = window.location.pathname.split("/").pop(); // Mengambil ID dari URL
+    const token = localStorage.getItem("access_token"); // Mengambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+    };
 
-    // Endpoint untuk mendapatkan nama proyek
-    const projectApiEndpoint = `http://127.0.0.1:8000/api/projects/${projectId}`;
+    const userEndpoint = "http://127.0.0.1:8000/api/users";
 
-    // Mengambil nama proyek menggunakan fetch
-    fetch(projectApiEndpoint)
-        .then((response) => response.json())
-        .then((data) => {
-            if (data && data.nama_project) {
-                // Update nama proyek di halaman
-                document.getElementById("project-name").textContent =
-                    data.nama_project;
-                // Update tag <title> dengan nama proyek
-                document.title = data.nama_project;
-            } else {
-                console.error("Nama proyek tidak ditemukan");
-            }
-        })
-        .catch((error) => {
-            console.error("Gagal mengambil nama proyek:", error);
+    try {
+        // Ambil data pengguna yang sedang login
+        const userResponse = await fetch(userEndpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Menambahkan token ke header
+            },
         });
 
-    const apiEndpoint = `http://127.0.0.1:8000/api/tasks?idproject=${projectId}`;
+        if (!userResponse.ok) {
+            throw new Error(
+                `Error ${userResponse.status}: ${userResponse.statusText}`
+            );
+        }
 
-    fetch(apiEndpoint)
-        .then((response) => response.json())
-        .then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-                const sortable1 = document.getElementById("sortable1");
-                const sortable2 = document.getElementById("sortable2");
-                const sortable3 = document.getElementById("sortable3");
+        const userData = await userResponse.json();
+        // Menampilkan nama pengguna di halaman
+        document.getElementById(
+            "user-name"
+        ).textContent = `${userData.name}`;
 
-                data.forEach((task) => {
-                    const liElement = document.createElement("div");
-                    liElement.classList.add("draggable-item", "task-card");
-                    liElement.textContent = `${task.nama_task}`;
-                    liElement.dataset.taskId = task.idtask; // Menyimpan ID task dalam data-task-id
-                    liElement.dataset.projectId = task.idproject; // Menyimpan ID project dalam data-project-id
-
-                    // Membuat elemen div untuk edit dan delete
-                    const editDeleteDiv = document.createElement("div");
-                    editDeleteDiv.classList.add("edit-delete");
-
-                    // Membuat tombol untuk ikon edit
-                    const editButton = document.createElement("button");
-                    editButton.classList.add("edit-btn");
-                    const editIcon = document.createElement("i");
-                    editIcon.classList.add("ph-bold", "ph-pencil-simple");
-                    editButton.appendChild(editIcon);
-
-                    // Membuat tombol untuk ikon delete
-                    const deleteButton = document.createElement("button");
-                    deleteButton.classList.add("delete-btn");
-                    const trashIcon = document.createElement("i");
-                    trashIcon.classList.add("ph-bold", "ph-trash");
-                    deleteButton.appendChild(trashIcon);
-
-                    // Menambahkan tombol ke dalam div edit-delete
-                    editDeleteDiv.appendChild(editButton);
-                    editDeleteDiv.appendChild(deleteButton);
-
-                    // Menambahkan div edit-delete ke dalam task-card (liElement)
-                    liElement.appendChild(editDeleteDiv);
-
-                    // Menambahkan item ke sortable berdasarkan statusnya
-                    if (task.status === "1") {
-                        sortable1.appendChild(liElement);
-                    } else if (task.status === "2") {
-                        sortable2.appendChild(liElement);
-                    } else if (task.status === "3") {
-                        sortable3.appendChild(liElement);
-                    }
-                });
-            } else {
-                console.log("Data tidak valid atau kosong");
-            }
-        })
-        .catch((error) => {
-            console.error("Terjadi kesalahan saat mengambil data:", error);
+        // Mengambil nama proyek
+        const projectApiEndpoint = `http://127.0.0.1:8000/api/projects/${projectId}`;
+        const projectResponse = await fetch(projectApiEndpoint, {
+            headers: headers,
         });
+        const projectData = await projectResponse.json();
+
+        if (projectData && projectData.nama_project) {
+            document.getElementById("project-name").textContent =
+                projectData.nama_project;
+            document.title = `${projectData.nama_project} | ProCodeCG`;
+        } else {
+            console.error("Nama proyek tidak ditemukan");
+        }
+
+        // Mengambil daftar tugas
+        const apiEndpoint = `http://127.0.0.1:8000/api/tasks?idproject=${projectId}`;
+        const taskResponse = await fetch(apiEndpoint, { headers: headers });
+        const taskData = await taskResponse.json();
+
+        if (Array.isArray(taskData) && taskData.length > 0) {
+            const sortable1 = document.getElementById("sortable1");
+            const sortable2 = document.getElementById("sortable2");
+            const sortable3 = document.getElementById("sortable3");
+
+            taskData.forEach((task) => {
+                const liElement = document.createElement("div");
+                liElement.classList.add("draggable-item", "task-card");
+                liElement.textContent = `${task.nama_task}`;
+                liElement.dataset.taskId = task.idtask;
+                liElement.dataset.projectId = task.idproject;
+
+                const editDeleteDiv = document.createElement("div");
+                editDeleteDiv.classList.add("edit-delete");
+
+                const editButton = document.createElement("button");
+                editButton.classList.add("edit-btn");
+                editButton.innerHTML =
+                    '<i class="ph-bold ph-pencil-simple"></i>';
+
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("delete-btn");
+                deleteButton.innerHTML = '<i class="ph-bold ph-trash"></i>';
+
+                editDeleteDiv.appendChild(editButton);
+                editDeleteDiv.appendChild(deleteButton);
+                liElement.appendChild(editDeleteDiv);
+
+                if (task.status === "1") {
+                    sortable1.appendChild(liElement);
+                } else if (task.status === "2") {
+                    sortable2.appendChild(liElement);
+                } else if (task.status === "3") {
+                    sortable3.appendChild(liElement);
+                }
+            });
+        } else {
+            console.log("Data tidak valid atau kosong");
+        }
+    } catch (error) {
+        console.error("Terjadi kesalahan:", error);
+    }
 });
 
 $("#add-task-btn").click(function () {
@@ -230,29 +246,34 @@ $("#close-modal-btn").click(function () {
 function addNewTask(taskName, projectId) {
     const status = "1"; // Status "To-do"
 
-    // Data yang dikirim
     const data = {
         nama_task: taskName,
-        status: status, // Harus berisi nilai yang sesuai
-        idproject: projectId, // Harus berisi nilai yang valid untuk ID proyek
+        status: status,
+        idproject: projectId,
     };
 
-    console.log("Data yang dikirim ke API:", data); // Debugging: menampilkan data yang dikirim
+    console.log("Data yang dikirim ke API:", data); // Debugging
+
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
 
     $.ajax({
         url: "http://127.0.0.1:8000/api/tasks",
         type: "POST",
-        data: JSON.stringify(data), // Pastikan mengirimkan data dalam format JSON
-        contentType: "application/json",
+        data: JSON.stringify(data),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil ditambahkan:", response);
-            location.reload(); // Me-refresh halaman setelah sukses
-            $("#modal").addClass("hidden"); // Menyembunyikan modal
-            $("#taskname").val(""); // Mengosongkan input field
+            location.reload();
+            $("#modal").addClass("hidden");
+            $("#taskname").val("");
         },
         error: function (xhr, status, error) {
             console.error("Gagal menambahkan tugas:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -290,19 +311,22 @@ $("#tambah-btn").click(function () {
 
 // Fungsi untuk menghapus task
 function deleteTask(taskId) {
-    // Kirim permintaan DELETE ke API untuk menghapus task
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk menghapus task
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "DELETE",
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil dihapus:", response);
-
-            // Hapus elemen task dari tampilan
             $(`[data-task-id=${taskId}]`).remove();
         },
         error: function (xhr, status, error) {
             console.error("Gagal menghapus task:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -356,36 +380,34 @@ $("#simpan-btn").click(function () {
 function updateTask(taskId, taskName) {
     const projectId = window.location.pathname.split("/").pop(); // ID proyek
 
-    // Kirim permintaan PUT ke API untuk memperbarui tugas
+    const data = {
+        nama_task: taskName,
+        idproject: projectId,
+    };
+
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`, // Endpoint API untuk update task
+        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
         type: "PUT",
-        data: JSON.stringify({
-            nama_task: taskName, // Nama tugas baru
-            idproject: projectId, // ID proyek
-        }),
-        contentType: "application/json",
+        data: JSON.stringify(data),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Task berhasil diperbarui:", response);
-
-            // Perbarui task card di UI setelah berhasil update
             const taskElement = $(`[data-task-id=${taskId}]`);
             taskElement.text(taskName); // Update nama task
-
-            // Pastikan tombol edit dan delete tetap ada
-            addEditDeleteButtons(taskElement); // Fungsi untuk menambahkan tombol edit/delete
-
-            // Inisialisasi ulang draggable untuk task yang diperbarui
+            addEditDeleteButtons(taskElement);
             init_draggable(taskElement);
-
-            // Tutup modal setelah berhasil update
             $("#modal-edit").addClass("hidden");
-
             location.reload();
         },
         error: function (xhr, status, error) {
             console.error("Gagal memperbarui task:", error);
-            console.log("Respons dari server:", xhr.responseText); // Tampilkan detail error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -476,23 +498,25 @@ $("#simpan-btn-proyek").click(function () {
 
 // Fungsi untuk memperbarui proyek menggunakan AJAX
 function updateProject(projectId, projectName) {
+    const token = localStorage.getItem("access_token"); // Ambil token
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
     $.ajax({
-        url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk update proyek
+        url: `http://127.0.0.1:8000/api/projects/${projectId}`,
         type: "PUT",
-        data: JSON.stringify({ nama_project: projectName }), // Data untuk diperbarui
-        contentType: "application/json",
+        data: JSON.stringify({ nama_project: projectName }),
+        headers: headers, // Menambahkan header authorization
         success: function (response) {
             console.log("Proyek berhasil diperbarui:", response);
-
-            // Tutup modal setelah berhasil update
             $("#modal-edit-proyek").addClass("hidden");
-
-            // Opsional: Refresh halaman atau tampilkan notifikasi sukses
             location.reload();
         },
         error: function (xhr, status, error) {
             console.error("Gagal memperbarui proyek:", error);
-            console.log("Respons dari server:", xhr.responseText); // Debugging error
+            console.log("Respons dari server:", xhr.responseText);
         },
     });
 }
@@ -505,9 +529,16 @@ $("#close-modal-edit-proyek").click(function () {
 // Fungsi untuk menghapus proyek
 function deleteProject(projectId) {
     if (confirm("Apakah Anda yakin ingin menghapus proyek ini?")) {
+        const token = localStorage.getItem("access_token"); // Ambil token
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        };
+
         $.ajax({
             url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk delete proyek
             type: "DELETE",
+            headers: headers,
             success: function (response) {
                 console.log("Proyek berhasil dihapus:", response);
 
@@ -527,3 +558,65 @@ $(document).on("click", "#menu-item-1", function () {
     const projectId = window.location.pathname.split("/").pop(); // Ambil ID proyek dari URL
     deleteProject(projectId); // Panggil fungsi deleteProject
 });
+
+// Ambil referensi ke tombol dan dropdown menu
+const userButton = document.getElementById("user-button");
+const dropdownUser = document.getElementById("dropdown-user");
+
+// Fungsi untuk toggle visibility dari dropdown menu
+userButton.addEventListener("click", function () {
+    const isExpanded = userButton.getAttribute("aria-expanded") === "true";
+
+    // Toggle dropdown visibility
+    dropdownUser.classList.toggle("hidden", isExpanded);
+
+    // Update atribut aria-expanded
+    userButton.setAttribute("aria-expanded", !isExpanded);
+});
+
+// Klik di luar dropdown menu untuk menutup menu
+document.addEventListener("click", function (event) {
+    if (
+        !userButton.contains(event.target) &&
+        !dropdownUser.contains(event.target)
+    ) {
+        dropdownUser.classList.add("hidden");
+        userButton.setAttribute("aria-expanded", "false");
+    }
+});
+
+document
+    .getElementById("logout-btn")
+    .addEventListener("click", async function () {
+        try {
+            const token = localStorage.getItem("access_token");
+
+            if (!token) {
+                console.log("User tidak terautentikasi");
+                return;
+            }
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/api/auth/logout",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Logout gagal");
+            }
+
+            // Hapus token dari localStorage
+            localStorage.removeItem("access_token");
+
+            // Redirect ke halaman login
+            window.location.href = "/login"; // Ganti dengan route login yang sesuai
+        } catch (error) {
+            console.error("Terjadi kesalahan saat logout:", error);
+        }
+    });

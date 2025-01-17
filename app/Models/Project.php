@@ -9,6 +9,7 @@ class Project extends Model
 {
     use HasFactory;
 
+<<<<<<< HEAD
     protected $table = 'projects';
     protected $primaryKey = 'idproject';
     protected $fillable = ['nama_project', 'iduser']; // Pastikan 'iduser' termasuk dalam $fillable
@@ -21,6 +22,11 @@ class Project extends Model
     {
         return $this->belongsTo(User::class, 'iduser'); // Menggunakan kolom 'iduser' sebagai FK
     }
+=======
+    protected $table = 'projects'; // Nama tabel
+    protected $primaryKey = 'idproject'; // Primary key
+    protected $fillable = ['nama_project','iduser']; // Kolom yang bisa diisi secara massal
+>>>>>>> save
 
     /**
      * Relasi ke model Task

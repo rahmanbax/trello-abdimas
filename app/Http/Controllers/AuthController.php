@@ -107,6 +107,7 @@ class AuthController extends Controller
      */
     public function logout()
     {
+<<<<<<< HEAD
         try {
             JWTAuth::invalidate(JWTAuth::getToken());
             return response()->json(['message' => 'Successfully logged out']);
@@ -118,10 +119,21 @@ class AuthController extends Controller
     /**
      * Refresh a token.
      * 
+=======
+        auth()->logout();
+  
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+  
+    /**
+     * Refresh a token.
+     *
+>>>>>>> save
      * @return \Illuminate\Http\JsonResponse
      */
     public function refresh()
     {
+<<<<<<< HEAD
         try {
             // Refresh token JWT
             $newToken = JWTAuth::refresh(JWTAuth::getToken());
@@ -135,6 +147,16 @@ class AuthController extends Controller
      * Get the token array structure.
      * 
      * @param string $token
+=======
+        return $this->respondWithToken(auth()->refresh());
+    }
+  
+    /**
+     * Get the token array structure.
+     *
+     * @param  string $token
+     *
+>>>>>>> save
      * @return \Illuminate\Http\JsonResponse
      */
     protected function respondWithToken($token)
@@ -142,6 +164,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
+<<<<<<< HEAD
             'expires_in' => JWTAuth::factory()->getTTL() * 60, // TTL default dalam menit
         ]);
     }
@@ -157,4 +180,9 @@ class AuthController extends Controller
 }
 
 
+=======
+            'expires_in' => auth()->factory()->getTTL() * 60
+        ]);
+    }
+>>>>>>> save
 }
