@@ -8,7 +8,7 @@ class ProjectController extends Controller
 {
 
     /**
-     * Fetch all project with their associated tasks.
+     * Fetch all projects with their associated tasks.
      */
     public function index()
     {
@@ -19,8 +19,9 @@ class ProjectController extends Controller
 
     }
 
-
-
+    /**
+     * Create a new project.
+     */
     public function store(Request $request)
     {
         try {
@@ -61,23 +62,14 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        $userId = Auth::id();
-        $project = Project::where('idproject', $id)
-            ->where('iduser', $userId)
-            ->with('tasks')
-            ->first();
+        $project = Project::with('tasks')->find($id);
 
         if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
-        // Debugging: Cek proyek yang diambil
-        dd($project);
-
         return response()->json($project, 200);
     }
-
-
 
     /**
      * Update an existing project.
@@ -107,10 +99,7 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        $userId = Auth::id(); // Mengambil ID user yang sedang login
-        $project = Project::where('idproject', $id)
-            ->where('iduser', $userId)  // Memastikan proyek milik user yang login
-            ->first();
+        $project = Project::find($id);
 
         if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
@@ -120,7 +109,6 @@ class ProjectController extends Controller
 
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
-
 
     public function showDetail($id)
     {
