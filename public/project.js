@@ -17,7 +17,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (Array.isArray(data) && data.length > 0) {
             // Referensi ke elemen kontainer di halaman
-            const projectContainer = document.getElementById("project-container");
+            const projectContainer =
+                document.getElementById("project-container");
 
             // Loop melalui data proyek yang diterima
             data.forEach((project) => {
@@ -80,10 +81,18 @@ async function addNewProject(projectName) {
         }
 
         const data = await response.json();
-        console.log("Proyek berhasil ditambahkan:", data);
+        console.log("Respons dari server:", data); // Debug respons server
 
-        // Reload halaman untuk memperbarui daftar proyek
-        location.reload();
+        // Validasi jika ID proyek tersedia
+        if (data && data.project && data.project.idproject) {
+            console.log(
+                "Redirecting to:",
+                `/project/${data.project.idproject}`
+            );
+            window.location.href = `/project/${data.project.idproject}`; // Redirect ke halaman proyek
+        } else {
+            throw new Error("Data proyek tidak valid");
+        }
     } catch (error) {
         console.error("Gagal menambahkan proyek:", error);
     }

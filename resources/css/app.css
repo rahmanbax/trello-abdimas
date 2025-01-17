@@ -2,18 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.cdnfonts.com/css/satoshi');
+
 @layer components {
     .task-card {
-        @apply break-all max-w-full flex gap-3 p-3 rounded-md min-h-fit max-h-fit justify-between bg-white hover:cursor-pointer outline outline-2 outline-slate-200 hover:outline-slate-500 text-sm text-slate-800 items-start;
+        @apply break-all max-w-full flex gap-3 p-3 min-h-fit max-h-fit justify-between bg-white hover:cursor-pointer shadow-md outline outline-1 outline-slate-200 hover:shadow-lg text-base text-slate-800 items-center;
     }
 
     .task-card
     .edit-delete {
-        @apply flex gap-2 text-lg;
+        @apply flex gap-2 text-lg text-slate-500;
     }
 
     .project-card {
-        @apply bg-slate-600 hover:bg-slate-500 text-lg text-slate-200 rounded-lg p-3 h-24;
+        @apply bg-white shadow-md hover:shadow-lg outline outline-1 outline-slate-200 text-lg text-slate-800 font-semibold p-4  h-24;
     }
 
     body {
@@ -22,3 +24,5 @@
 
     /* ... */
 }
+
+

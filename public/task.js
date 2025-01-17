@@ -347,8 +347,6 @@ $("#simpan-btn").click(function () {
     if (taskName) {
         // Panggil fungsi untuk memperbarui tugas
         updateTask(taskId, taskName);
-
-
     } else {
         alert("Nama tugas tidak boleh kosong");
     }
@@ -421,3 +419,111 @@ function addEditDeleteButtons(taskElement) {
         taskElement.append(editDeleteDiv);
     }
 }
+
+// Ambil referensi ke tombol dan dropdown menu
+const menuButton = document.getElementById("menu-button");
+const dropdownMenu = document.getElementById("dropdown-menu");
+
+// Fungsi untuk toggle visibility dari dropdown menu
+menuButton.addEventListener("click", function () {
+    const isExpanded = menuButton.getAttribute("aria-expanded") === "true";
+
+    // Toggle dropdown visibility
+    dropdownMenu.classList.toggle("hidden", isExpanded);
+
+    // Update atribut aria-expanded
+    menuButton.setAttribute("aria-expanded", !isExpanded);
+});
+
+// Klik di luar dropdown menu untuk menutup menu
+document.addEventListener("click", function (event) {
+    if (
+        !menuButton.contains(event.target) &&
+        !dropdownMenu.contains(event.target)
+    ) {
+        dropdownMenu.classList.add("hidden");
+        menuButton.setAttribute("aria-expanded", "false");
+    }
+});
+
+// Menambahkan event listener untuk tombol edit proyek
+$(document).on("click", "#menu-item-0", function () {
+    const projectId = window.location.pathname.split("/").pop(); // Ambil ID proyek dari URL
+    const projectName = $("#project-name").text().trim(); // Ambil nama proyek dari tampilan
+
+    // Isi modal edit dengan nama proyek yang dipilih
+    $("#proyek-edit").val(projectName);
+
+    // Simpan ID proyek di modal untuk referensi saat update
+    $("#modal-edit-proyek").data("project-id", projectId);
+
+    // Tampilkan modal edit proyek
+    $("#modal-edit-proyek").removeClass("hidden");
+});
+
+// Event listener untuk tombol simpan pada modal edit proyek
+$("#simpan-btn-proyek").click(function () {
+    const projectId = $("#modal-edit-proyek").data("project-id"); // Ambil ID proyek dari data di modal
+    const projectName = $("#proyek-edit").val().trim(); // Ambil nama proyek baru dari input field
+
+    // Validasi nama proyek tidak kosong
+    if (projectName) {
+        updateProject(projectId, projectName); // Panggil fungsi untuk update proyek
+    } else {
+        alert("Nama proyek tidak boleh kosong"); // Tampilkan pesan jika input kosong
+    }
+});
+
+// Fungsi untuk memperbarui proyek menggunakan AJAX
+function updateProject(projectId, projectName) {
+    $.ajax({
+        url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk update proyek
+        type: "PUT",
+        data: JSON.stringify({ nama_project: projectName }), // Data untuk diperbarui
+        contentType: "application/json",
+        success: function (response) {
+            console.log("Proyek berhasil diperbarui:", response);
+
+            // Tutup modal setelah berhasil update
+            $("#modal-edit-proyek").addClass("hidden");
+
+            // Opsional: Refresh halaman atau tampilkan notifikasi sukses
+            location.reload();
+        },
+        error: function (xhr, status, error) {
+            console.error("Gagal memperbarui proyek:", error);
+            console.log("Respons dari server:", xhr.responseText); // Debugging error
+        },
+    });
+}
+
+// Menutup modal ketika tombol "Batal" diklik
+$("#close-modal-edit-proyek").click(function () {
+    $("#modal-edit-proyek").addClass("hidden");
+});
+
+// Fungsi untuk menghapus proyek
+function deleteProject(projectId) {
+    if (confirm("Apakah Anda yakin ingin menghapus proyek ini?")) {
+        $.ajax({
+            url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk delete proyek
+            type: "DELETE",
+            success: function (response) {
+                console.log("Proyek berhasil dihapus:", response);
+
+                // Redirect ke halaman utama atau halaman lain setelah proyek dihapus
+                window.location.href = "/project"; // Sesuaikan URL sesuai kebutuhan
+            },
+            error: function (xhr, status, error) {
+                console.error("Gagal menghapus proyek:", error);
+                console.log("Respons dari server:", xhr.responseText); // Debugging error
+            },
+        });
+    }
+}
+
+// Menambahkan event listener untuk tombol delete proyek
+$(document).on("click", "#menu-item-1", function () {
+    const projectId = window.location.pathname.split("/").pop(); // Ambil ID proyek dari URL
+    deleteProject(projectId); // Panggil fungsi deleteProject
+});
