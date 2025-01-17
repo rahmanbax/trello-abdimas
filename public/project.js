@@ -14,49 +14,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     const token = localStorage.getItem("authToken");
 
     try {
-<<<<<<< HEAD
-=======
-        // Ambil data pengguna yang sedang login
-        const userResponse = await fetch(userEndpoint, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`, // Menambahkan token ke header
-            },
-        });
-
-        if (!userResponse.ok) {
-            throw new Error(
-                `Error ${userResponse.status}: ${userResponse.statusText}`
-            );
-        }
-
-        const userData = await userResponse.json();
-        // Menampilkan nama pengguna di halaman
-        document.getElementById(
-            "user-name"
-        ).textContent = `${userData.name}`;
-
->>>>>>> save
         const response = await fetch(apiEndpoint, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-<<<<<<< HEAD
                 "Authorization": `Bearer ${token}` // Menambahkan token ke header
             },
         });
 
-=======
-                Authorization: `Bearer ${token}`, // Menambahkan token ke header
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
->>>>>>> save
         const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
@@ -120,11 +85,7 @@ async function addNewProject(projectName) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-<<<<<<< HEAD
                 "Authorization": `Bearer ${token}` // Menambahkan token ke header
-=======
-                Authorization: `Bearer ${token}`, // Kirim token dalam header Authorization
->>>>>>> save
             },
             body: JSON.stringify({
                 nama_project: projectName, // Nama proyek yang dimasukkan oleh pengguna
