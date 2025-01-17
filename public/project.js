@@ -10,17 +10,39 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
     }
 
-    // Ambil token dari localStorage (atau sumber lain yang sesuai)
-    const token = localStorage.getItem("authToken");
-
     try {
+        // Ambil data pengguna yang sedang login
+        const userResponse = await fetch(userEndpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Menambahkan token ke header
+            },
+        });
+
+        if (!userResponse.ok) {
+            throw new Error(
+                `Error ${userResponse.status}: ${userResponse.statusText}`
+            );
+        }
+
+        const userData = await userResponse.json();
+        // Menampilkan nama pengguna di halaman
+        document.getElementById(
+            "user-name"
+        ).textContent = `${userData.name}`;
+
         const response = await fetch(apiEndpoint, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` // Menambahkan token ke header
+                Authorization: `Bearer ${token}`, // Menambahkan token ke header
             },
         });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
 
         const data = await response.json();
 
@@ -71,8 +93,6 @@ $("#close-modal-btn").click(function () {
 
 // Fungsi untuk menambahkan tugas baru
 async function addNewProject(projectName) {
-    const token = localStorage.getItem("authToken"); // Ambil token dari localStorage
-
     try {
         const token = localStorage.getItem("access_token"); // Ambil token dari localStorage
 
@@ -85,7 +105,7 @@ async function addNewProject(projectName) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` // Menambahkan token ke header
+                Authorization: `Bearer ${token}`, // Kirim token dalam header Authorization
             },
             body: JSON.stringify({
                 nama_project: projectName, // Nama proyek yang dimasukkan oleh pengguna

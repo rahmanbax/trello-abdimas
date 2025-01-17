@@ -7,11 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-<<<<<<< HEAD
-
-=======
  
->>>>>>> save
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
@@ -42,17 +38,6 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return array<string, string>
      */
-<<<<<<< HEAD
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-
-    public function project()
-    {
-        return $this->hasMany(Project::class, 'iduser'); // Menggunakan kolom 'iduser' sebagai FK
-    }
-
-=======
     protected function casts(): array
     {
         return [
@@ -66,16 +51,11 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return mixed
      */
->>>>>>> save
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
-<<<<<<< HEAD
-
-=======
  
->>>>>>> save
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
@@ -85,8 +65,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> save
