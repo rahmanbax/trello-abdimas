@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/project', function () {
     return view('project.index');
-});
+})->middleware('auth');
 
 Route::get('/project/{id}', function ($id) {
     return view('project.detail', ['id' => $id]);
