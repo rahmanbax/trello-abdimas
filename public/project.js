@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async function () {
-    const apiEndpoint = "http://127.0.0.1:8000/api/projects";
-    const userEndpoint = "http://127.0.0.1:8000/api/users";
+    const apiEndpoint = "https://trelloapp.id/api/projects";
+    const userEndpoint = "https://trelloapp.id/api/users";
 
     // Ambil token dari localStorage
     const token = localStorage.getItem("access_token");
@@ -101,7 +101,7 @@ async function addNewProject(projectName) {
             throw new Error("User is not authenticated");
         }
 
-        const response = await fetch("http://127.0.0.1:8000/api/projects", {
+        const response = await fetch("https://trelloapp.id/api/projects", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -160,7 +160,7 @@ document
             }
 
             const response = await fetch(
-                "http://127.0.0.1:8000/api/auth/logout",
+                "https://trelloapp.id/api/auth/logout",
                 {
                     method: "POST",
                     headers: {

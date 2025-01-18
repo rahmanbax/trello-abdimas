@@ -124,7 +124,7 @@ function updateStatus(item, status) {
     };
 
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
+        url: `https://trelloapp.id/api/tasks/${taskId}`,
         type: "PUT",
         data: JSON.stringify(data),
         headers: headers, // Menambahkan header authorization
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         Authorization: `Bearer ${token}`,
     };
 
-    const userEndpoint = "http://127.0.0.1:8000/api/users";
+    const userEndpoint = "https://trelloapp.id/api/users";
 
     try {
         // Ambil data pengguna yang sedang login
@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.getElementById("user-name").textContent = `${userData.name}`;
 
         // Mengambil nama proyek
-        const projectApiEndpoint = `http://127.0.0.1:8000/api/projects/${projectId}`;
+        const projectApiEndpoint = `https://trelloapp.id/api/projects/${projectId}`;
         const projectResponse = await fetch(projectApiEndpoint, {
             headers: headers,
         });
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         // Mengambil daftar tugas
-        const apiEndpoint = `http://127.0.0.1:8000/api/tasks?idproject=${projectId}`;
+        const apiEndpoint = `https://trelloapp.id/api/tasks?idproject=${projectId}`;
         const taskResponse = await fetch(apiEndpoint, { headers: headers });
         const taskData = await taskResponse.json();
 
@@ -259,7 +259,7 @@ function addNewTask(taskName, projectId) {
     };
 
     $.ajax({
-        url: "http://127.0.0.1:8000/api/tasks",
+        url: "https://trelloapp.id/api/tasks",
         type: "POST",
         data: JSON.stringify(data),
         headers: headers, // Menambahkan header authorization
@@ -315,7 +315,7 @@ function deleteTask(taskId) {
     };
 
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
+        url: `https://trelloapp.id/api/tasks/${taskId}`,
         type: "DELETE",
         headers: headers, // Menambahkan header authorization
         success: function (response) {
@@ -390,7 +390,7 @@ function updateTask(taskId, taskName) {
     };
 
     $.ajax({
-        url: `http://127.0.0.1:8000/api/tasks/${taskId}`,
+        url: `https://trelloapp.id/api/tasks/${taskId}`,
         type: "PUT",
         data: JSON.stringify(data),
         headers: headers, // Menambahkan header authorization
@@ -503,7 +503,7 @@ function updateProject(projectId, projectName) {
     };
 
     $.ajax({
-        url: `http://127.0.0.1:8000/api/projects/${projectId}`,
+        url: `https://trelloapp.id/api/projects/${projectId}`,
         type: "PUT",
         data: JSON.stringify({ nama_project: projectName }),
         headers: headers, // Menambahkan header authorization
@@ -534,7 +534,7 @@ function deleteProject(projectId) {
         };
 
         $.ajax({
-            url: `http://127.0.0.1:8000/api/projects/${projectId}`, // Endpoint API untuk delete proyek
+            url: `https://trelloapp.id/api/projects/${projectId}`, // Endpoint API untuk delete proyek
             type: "DELETE",
             headers: headers,
             success: function (response) {
@@ -595,7 +595,7 @@ document
             }
 
             const response = await fetch(
-                "http://127.0.0.1:8000/api/auth/logout",
+                "https://trelloapp.id/api/auth/logout",
                 {
                     method: "POST",
                     headers: {
