@@ -470,6 +470,8 @@ $.ajax({
     error: function (xhr, status, error) {
         console.error("Gagal mengambil data proyek:", error);
         console.log("Respons dari server:", xhr.responseText);
+        alert("Halaman yang ingin kamu akses tidak ada");
+        window.location.href = "/project";
     },
 });
 

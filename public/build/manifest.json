@@ -1,6 +1,14 @@
 {
+  "public/fonts/Satoshi-Bold.woff2": {
+    "file": "assets/Satoshi-Bold-Bd5kKQ_U.woff2",
+    "src": "public/fonts/Satoshi-Bold.woff2"
+  },
+  "public/fonts/Satoshi-Medium.woff2": {
+    "file": "assets/Satoshi-Medium-ByP-Zb-9.woff2",
+    "src": "public/fonts/Satoshi-Medium.woff2"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-Bmhyvv-l.css",
+    "file": "assets/app-BrtRVSup.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
