@@ -101,7 +101,7 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 60),
+    'ttl' => env('JWT_TTL', 10080),
 
     /*
     |--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ return [
     |
     */
 
-    'leeway' => env('JWT_LEEWAY', 0),
+    'leeway' => env('JWT_LEEWAY', 10),
 
     /*
     |--------------------------------------------------------------------------
@@ -296,6 +296,14 @@ return [
 
         'storage' => Tymon\JWTAuth\Providers\Storage\Illuminate::class,
 
+    ],
+
+    'parsers' => [
+        Tymon\JWTAuth\Http\Parser\AuthHeaders::class,
+        Tymon\JWTAuth\Http\Parser\QueryString::class,
+        Tymon\JWTAuth\Http\Parser\InputSource::class,
+        Tymon\JWTAuth\Http\Parser\RouteParams::class,
+        Tymon\JWTAuth\Http\Parser\Cookies::class, // <-- Ini penting untuk membaca cookie Anda
     ],
 
 ];

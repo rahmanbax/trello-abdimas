@@ -1,16 +1,15 @@
 <?php
-  
+
 namespace App\Http\Controllers;
-  
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Request;
 
 class AuthController extends Controller
 {
- 
+
     /**
      * Register a User.
      *
@@ -24,14 +23,14 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
             $user->save();
-     
+
             return response()->json($user, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create user'], 500);
         }
-    }    
-  
-  
+    }
+
+
     /**
      * Get a JWT via given credentials.
      *
@@ -40,14 +39,14 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
-    
+
         if (!$token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Invalid email or password.'], 401);
         }
-    
+
         return $this->respondWithToken($token);
     }
-  
+
     /**
      * Get the authenticated User.
      *
@@ -57,7 +56,7 @@ class AuthController extends Controller
     {
         return response()->json(auth()->user());
     }
-  
+
     /**
      * Log the user out (Invalidate the token).
      *
@@ -66,10 +65,10 @@ class AuthController extends Controller
     public function logout()
     {
         auth()->logout();
-  
+
         return response()->json(['message' => 'Successfully logged out']);
     }
-  
+
     /**
      * Refresh a token.
      *
@@ -79,7 +78,7 @@ class AuthController extends Controller
     {
         return $this->respondWithToken(auth()->refresh());
     }
-  
+
     /**
      * Get the token array structure.
      *

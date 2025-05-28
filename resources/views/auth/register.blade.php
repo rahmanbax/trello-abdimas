@@ -19,30 +19,33 @@
             @csrf
             <div>
                 <label class="font-medium" for="name">Nama lengkap</label>
-                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" type="text" name="name" id="name" placeholder="Masukkan nama lengkap" required>
+                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md" type="text" name="name" id="name" placeholder="Masukkan nama lengkap" required>
             </div>
             <div class="mt-4">
                 <label class="font-medium" for="email">Email</label>
-                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" type="email" name="email" id="email" placeholder="Masukkan email" required>
+                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md" type="email" name="email" id="email" placeholder="Masukkan email" required>
             </div>
             <div class="mt-4">
                 <label class="font-medium" for="password">Password</label>
-                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" type="password" name="password" id="password" placeholder="Masukkan password" required>
+                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md" type="password" name="password" id="password" placeholder="Masukkan password" required>
             </div>
             <div class="mt-4">
                 <label class="font-medium" for="password_confirmation">Konfirmasi password</label>
-                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" type="password" name="password_confirmation" id="password_confirmation" placeholder="Masukkan konfirmasi password" required>
+                <input class="mt-2 block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md" type="password" name="password_confirmation" id="password_confirmation" placeholder="Masukkan konfirmasi password" required>
             </div>
-            <button class="bg-blue-600 hover:bg-blue-500 p-2 text-white text-lg w-full mt-6" type="submit">Daftar</button>
+            <button class="bg-blue-600 hover:bg-blue-500 p-2 text-white text-lg w-full mt-6 rounded-md" type="submit">Daftar</button>
         </form>
 
-        <p>Sudah mempunyai akun?<a href="/login" class="text-blue-600 p-2 hover:bg-blue-50 rounded-full">Masuk</a></p>
+        <p>Sudah mempunyai akun?<a href="/login" class="text-blue-600 p-2 hover:bg-blue-50 rounded-md">Masuk</a></p>
 
     </div>
 
     <script>
         document.getElementById("registerForm").addEventListener("submit", async function(e) {
             e.preventDefault();
+
+            // const API_BASE_URL = "https://trelloapp.id/api";
+            const API_BASE_URL = "http://127.0.0.1:8000/api";
 
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
@@ -61,7 +64,7 @@
             }
 
             try {
-                const response = await fetch("https://trelloapp.id/api/auth/register", {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -86,6 +89,8 @@
             }
         });
     </script>
+
+    <x-loading-overlay />
 </body>
 
 </html>

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id('idtask');
             $table->string('nama_task');
             $table->enum('status', [1, 2, 3])->default(1);
+            $table->integer('order')->default(0);
             $table->unsignedBigInteger('idproject');
             $table->timestamps();
 

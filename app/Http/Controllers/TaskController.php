@@ -12,11 +12,11 @@ class TaskController extends Controller
     {
         // Mengambil parameter 'idproject' dari query string
         $idProject = $request->query('idproject');
-        
+
         // Memastikan bahwa idproject ada dalam query dan valid
         if ($idProject) {
             // Menyaring data task berdasarkan 'idproject'
-            $tasks = Task::where('idproject', $idProject)->get();
+            $tasks = Task::where('idproject', $idProject)->orderBy('order')->get();
         } else {
             // Jika tidak ada parameter 'idproject', ambil semua data task
             $tasks = Task::all();
@@ -41,7 +41,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'nama_task' => 'required|string|max:255',
-            'status' => 'required|in:1,2,3',
+            'order' => 'required|integer',
             'idproject' => 'required|exists:projects,idproject',
         ]);
 
@@ -79,8 +79,9 @@ class TaskController extends Controller
         }
 
         $validated = $request->validate([
-            'nama_task' => 'required|string|max:255',
+            'nama_task' => 'nullable|string|max:255',
             'status' => 'nullable|in:1,2,3',
+            'order' => 'nullable|integer',
             'idproject' => 'required|exists:projects,idproject',
         ]);
 

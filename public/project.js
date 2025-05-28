@@ -1,6 +1,9 @@
+// const API_BASE_URL = "https://trelloapp.id/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
+
 document.addEventListener("DOMContentLoaded", async function () {
-    const apiEndpoint = "https://trelloapp.id/api/projects";
-    const userEndpoint = "https://trelloapp.id/api/users";
+    const apiEndpoint = `${API_BASE_URL}/projects`;
+    const userEndpoint = `${API_BASE_URL}/users`;
 
     // Ambil token dari localStorage
     const token = localStorage.getItem("access_token");
@@ -28,9 +31,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const userData = await userResponse.json();
         // Menampilkan nama pengguna di halaman
-        document.getElementById(
-            "user-name"
-        ).textContent = `${userData.name}`;
+        document.getElementById("user-name").textContent = `${userData.name}`;
 
         const response = await fetch(apiEndpoint, {
             method: "GET",
@@ -101,7 +102,7 @@ async function addNewProject(projectName) {
             throw new Error("User is not authenticated");
         }
 
-        const response = await fetch("https://trelloapp.id/api/projects", {
+        const response = await fetch(`${API_BASE_URL}/projects`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -121,10 +122,8 @@ async function addNewProject(projectName) {
 
         // Validasi jika ID proyek tersedia
         if (data && data.project && data.project.idproject) {
-            console.log(
-                "Redirecting to:",
-                `/project/${data.project.idproject}`
-            );
+            // close modal
+            $("#modal").addClass("hidden");
             window.location.href = `/project/${data.project.idproject}`; // Redirect ke halaman proyek
         } else {
             throw new Error("Data proyek tidak valid");
@@ -145,67 +144,5 @@ $("#tambah-btn").click(function () {
         addNewProject(projectName);
     } else {
         alert("Nama proyek tidak boleh kosong!");
-    }
-});
-
-document
-    .getElementById("logout-btn")
-    .addEventListener("click", async function () {
-        try {
-            const token = localStorage.getItem("access_token");
-
-            if (!token) {
-                console.log("User tidak terautentikasi");
-                return;
-            }
-
-            const response = await fetch(
-                "https://trelloapp.id/api/auth/logout",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Logout gagal");
-            }
-
-            // Hapus token dari localStorage
-            localStorage.removeItem("access_token");
-
-            // Redirect ke halaman login
-            window.location.href = "/login"; // Ganti dengan route login yang sesuai
-        } catch (error) {
-            console.error("Terjadi kesalahan saat logout:", error);
-        }
-    });
-
-// Ambil referensi ke tombol dan dropdown menu
-const userButton = document.getElementById("user-button");
-const dropdownUser = document.getElementById("dropdown-user");
-
-// Fungsi untuk toggle visibility dari dropdown menu
-userButton.addEventListener("click", function () {
-    const isExpanded = userButton.getAttribute("aria-expanded") === "true";
-
-    // Toggle dropdown visibility
-    dropdownUser.classList.toggle("hidden", isExpanded);
-
-    // Update atribut aria-expanded
-    userButton.setAttribute("aria-expanded", !isExpanded);
-});
-
-// Klik di luar dropdown menu untuk menutup menu
-document.addEventListener("click", function (event) {
-    if (
-        !userButton.contains(event.target) &&
-        !dropdownUser.contains(event.target)
-    ) {
-        dropdownUser.classList.add("hidden");
-        userButton.setAttribute("aria-expanded", "false");
     }
 });
