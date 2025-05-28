@@ -9,6 +9,15 @@ export default {
         "./resources/views/**/*.blade.php",
     ],
 
+    safelist: [
+        "task-card",
+        "edit-delete",
+        "edit-btn",
+        "delete-btn",
+        "btn",
+        "project-card",
+    ],
+
     theme: {
         fontFamily: {
             sans: ["Satoshi", "sans-serif"], // Setel font default menjadi Satoshi
