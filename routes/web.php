@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckJwtToken;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\CollaboratorController;
+use App\Http\Controllers\ProjectController;
 
 
 // Route yang aman TANPA middleware
@@ -26,6 +28,12 @@ Route::middleware([CheckJwtToken::class])->group(function () {
     });
 
     Route::get('/project/{id}', function ($id) {
-        return view('project.detail', ['id' => $id]);
+    return view('project.detail', ['id' => $id]);
     });
+
 });
+
+Route::post('/projects/invite', [CollaboratorController::class, 'invite'])->name('collaborators.invite');
+Route::get('/project/{id}', [ProjectController::class, 'showDetail'])->name('projects.showDetail');
+Route::post('/projects/invite', [ProjectController::class, 'invite'])->name('project.invite');
+Route::post('/check-email', [ProjectController::class, 'checkEmail'])->name('check.email');

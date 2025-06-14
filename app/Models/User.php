@@ -67,4 +67,12 @@ class User extends Authenticatable implements JWTSubject
             'iat' => now()->timestamp,
         ];
     }
+
+        public function collaborators()
+    {
+        return $this->belongsToMany(User::class, 'collaborators', 'project_id', 'user_id')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
 }

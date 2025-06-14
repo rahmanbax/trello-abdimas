@@ -1,8 +1,13 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Project;
+use App\Models\Collaborator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
@@ -13,10 +18,12 @@ class ProjectController extends Controller
     public function index()
     {
         $user     = auth()->user();
-        $projects = Project::with('tasks')->where('iduser', $user->id)->get();
-
+        $userid = $user->id;
+        // $projects = Project::with('colaborators')->where('iduser', $user->id)->get();
+        $projects = DB::select("SELECT DISTINCT idproject,nama_project FROM projects
+INNER JOIN collaborators ON projects.idproject = collaborators.project_id
+WHERE projects.iduser = $userid or collaborators.user_id = $userid;");
         return response()->json($projects, 200);
-
     }
 
     /**
@@ -110,14 +117,47 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
-    public function showDetail($id)
+       public function showDetail($id)
     {
-        $project = Project::with('tasks')->find($id); // Mengambil proyek beserta tugasnya
+        $project = Project::with('tasks')->find($id);
 
         if (! $project) {
             return redirect()->route('projects.index')->with('error', 'Project not found');
         }
 
-        return view('project.detail', compact('project')); // Mengirim data proyek ke view detail
+        return view('project.detail', compact('project'));
     }
+
+    public function invite(Request $request)
+    {
+        Log::info('Invite method dipanggil', ['request' => $request->all()]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            Log::warning('User tidak ditemukan', ['email' => $request->email]);
+            return redirect()->back()->with('error', 'User dengan email tersebut tidak ditemukan.');
+        }
+
+        $created = Collaborator::create([
+            'project_id' => $request->project_id,
+            'user_id'    => $user->id,
+            'role'       => $request->role,
+        ]);
+
+        Log::info('Kolaborator berhasil ditambahkan', ['collaborator' => $created]);
+
+        return redirect()->back()->with('success', 'User berhasil diundang.');
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $email = $request->input('email');
+
+        $exists = User::where('email', $email)->exists();
+
+        return response()->json(['available' => $exists]);
+    }
+
+
 }

@@ -21,5 +21,11 @@ class Project extends Model
     {
         return $this->hasMany(Task::class, 'idproject', 'idproject');
     }
-}
+    
+    public function collaborators()
+    {
+        return $this->hasMany(Collaborator::class, 'project_id');
+    }
+    
 
+}

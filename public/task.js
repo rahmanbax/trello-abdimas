@@ -4,6 +4,8 @@ const API_BASE_URL = "http://127.0.0.1:8000/api";
 const token = localStorage.getItem("access_token"); // Mengambil token
 const projectId = window.location.pathname.split("/").pop();
 
+document.getElementById('projectId').value=projectId
+
 const headers = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
@@ -635,3 +637,69 @@ function addNewTask(taskName, projectId) {
         },
     });
 }
+
+  // Pastikan tombol pemicu modal ada di HTML
+const inviteMemberBtn = document.getElementById('invite-member-btn');
+const modalInvite = document.getElementById('modal-invite');
+const closeModalInviteBtn = document.getElementById('close-modal-invite');
+const copyShareLinkBtn = document.getElementById('copy-share-link');
+const shareLinkInput = document.getElementById('share-link');
+const hideJoinReqBtn = document.getElementById('close-join-request');
+const joinRequestsSection = modalInvite.querySelector('div.mt-6'); // asumsi join requests ada di sini
+
+// Buka modal saat tombol diklik
+if (inviteMemberBtn) {
+  inviteMemberBtn.addEventListener('click', () => {
+    modalInvite.classList.remove('hidden');
+  });
+}
+
+// Tutup modal saat tombol close diklik
+if (closeModalInviteBtn) {
+  closeModalInviteBtn.addEventListener('click', () => {
+    modalInvite.classList.add('hidden');
+  });
+}
+
+// Tutup modal jika klik di luar konten modal
+window.addEventListener('click', (e) => {
+  if (e.target === modalInvite) {
+    modalInvite.classList.add('hidden');
+  }
+});
+
+// Tombol copy link share modern dan user friendly
+if (copyShareLinkBtn && shareLinkInput) {
+  copyShareLinkBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shareLinkInput.value);
+      // Ganti teks tombol jadi "Copied!" sementara
+      const originalText = copyShareLinkBtn.textContent;
+      copyShareLinkBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyShareLinkBtn.textContent = originalText;
+      }, 1500);
+    } catch (err) {
+      alert('Gagal menyalin link.');
+    }
+  });
+}
+
+// Hide/show join requests section
+if (hideJoinReqBtn && joinRequestsSection) {
+  hideJoinReqBtn.addEventListener('click', () => {
+    if (joinRequestsSection.style.display === 'none') {
+      joinRequestsSection.style.display = 'block';
+      hideJoinReqBtn.textContent = 'Hide';
+    } else {
+      joinRequestsSection.style.display = 'none';
+      hideJoinReqBtn.textContent = 'Show';
+    }
+  });
+}
+
+// Jika mau langsung buka modal untuk demo
+function openModal() {
+  modalInvite.classList.remove('hidden');
+}
+// openModal(); // uncomment jika ingin langsung buka modal saat load halaman

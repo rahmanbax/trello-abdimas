@@ -24,4 +24,7 @@ Route::group([
     Route::post('/me', [AuthController::class, 'me'])->middleware('auth:api')->name('me');
 });
 
+Route::middleware('auth:sanctum')->post('/projects/{project}/invite', [ProjectController::class, 'apiInvite'])->name('api.project.invite');
 
+Route::post('/check-email', [CollaboratorController::class, 'cariEmailUser'])->name('check.email');
+Route::post('/collaborators', [CollaboratorController::class, 'storeCollaborator'])->name('collaborators.store');
