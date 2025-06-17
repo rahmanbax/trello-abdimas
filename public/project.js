@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const data = await response.json();
 
+        // console.log("Respons dari server:", data); // Debug respons server
+
         if (Array.isArray(data) && data.length > 0) {
             // Referensi ke elemen kontainer di halaman
             const projectContainer =
@@ -63,11 +65,18 @@ document.addEventListener("DOMContentLoaded", async function () {
                 projectLink.href = `/project/${project.idproject}`;
 
                 // Membuat elemen p untuk nama proyek
-                const projectName = document.createElement("p");
+                const projectName = document.createElement("h2");
                 projectName.textContent = project.nama_project;
+
+                // Membuat elemen p untuk tanggal update
+                const updatedAt = document.createElement("p");
+                updatedAt.textContent = `Di update ${timeAgo(
+                    new Date(project.updated_at)
+                )}`;
 
                 // Menambahkan nama proyek ke dalam card
                 projectCard.appendChild(projectName);
+                projectCard.appendChild(updatedAt);
 
                 // Membungkus seluruh card dengan link
                 projectLink.appendChild(projectCard);
@@ -77,11 +86,53 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         } else {
             console.log("Data tidak valid atau kosong");
+
+            const projectContainer =
+                document.getElementById("project-container");
+            const projectCard = document.createElement("div");
+            projectCard.classList.add("project-none");
+            const projectName = document.createElement("h2");
+            projectName.textContent = "Anda belum membuat proyek";
+            const projectDesc = document.createElement("p");
+            projectDesc.textContent =
+                "Buat proyek baru sekarang untuk mulai berkolaborasi dan menyelesaikan target Anda.";
+            const addProjectButton = document.createElement("button");
+            addProjectButton.innerHTML = '<i class="ph-bold ph-plus"></i> Buat Proyek';
+            addProjectButton.id = "add-project-btn";
+            addProjectButton.addEventListener("click", function () {
+                $("#modal").removeClass("hidden");
+            });
+            projectCard.appendChild(projectName);
+            projectCard.appendChild(projectDesc);
+            projectCard.appendChild(addProjectButton);
+            projectContainer.appendChild(projectCard);
         }
     } catch (error) {
         console.error("Terjadi kesalahan saat mengambil data:", error);
     }
 });
+
+function timeAgo(date) {
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return `${interval} tahun yang lalu`;
+
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return `${interval} bulan yang lalu`;
+
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return `${interval} hari yang lalu`;
+
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return `${interval} jam yang lalu`;
+
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return `${interval} menit yang lalu`;
+
+    return `baru saja`;
+}
 
 $("#add-project-btn").click(function () {
     $("#modal").removeClass("hidden");
@@ -118,7 +169,7 @@ async function addNewProject(projectName) {
         }
 
         const data = await response.json();
-        console.log("Respons dari server:", data); // Debug respons server
+        // console.log("Respons dari server:", data); // Debug respons server
 
         // Validasi jika ID proyek tersedia
         if (data && data.project && data.project.idproject) {

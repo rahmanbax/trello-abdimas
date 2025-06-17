@@ -1,13 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Collaborator;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class ProjectController extends Controller
 {
@@ -20,11 +21,17 @@ class ProjectController extends Controller
         $user     = auth()->user();
         $userid = $user->id;
         // $projects = Project::with('colaborators')->where('iduser', $user->id)->get();
-        $projects = DB::select("SELECT DISTINCT idproject,nama_project FROM projects
-INNER JOIN collaborators ON projects.idproject = collaborators.project_id
-WHERE projects.iduser = $userid or collaborators.user_id = $userid;");
+        $projects = Project::with('collaborators')
+            ->where('iduser', $userid) // project milik user
+            ->orWhereHas('collaborators', function ($query) use ($userid) { // project yang dikolaborasikan ke user
+                $query->where('user_id', $userid);
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         return response()->json($projects, 200);
     }
+
 
     /**
      * Create a new project.
@@ -117,7 +124,72 @@ WHERE projects.iduser = $userid or collaborators.user_id = $userid;");
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
-       public function showDetail($id)
+    public function getProjectUsers($idproject)
+    {
+        // Ambil project beserta relasi collaborators dan user dari masing-masing collaborator
+        $project = Project::with('collaborators.user')->find($idproject);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        // Ambil user dari relasi collaborators
+        $users = $project->collaborators->map(function ($collaborator) {
+            return [
+                'id' => $collaborator->user->id,
+                'name' => $collaborator->user->name,
+                'email' => $collaborator->user->email,
+            ];
+        });
+
+        // Ambil informasi pemilik project
+        $owner = [
+            'id' => $project->iduser, // Kolom iduser adalah id pemilik
+            'name' => $project->user->name, // Pastikan project punya relasi ke user
+            'email' => $project->user->email,
+        ];
+
+        return response()->json([
+            'users' => $users,
+            'owner' => $owner,
+        ]);
+    }
+
+
+    public function removeUser($projectId, $userId)
+    {
+        $authUserId = auth()->user()->id;
+
+        // Ambil project dulu
+        $project = Project::find($projectId);
+
+        Log::info('ID pemilik project: ' . $project->iduser);
+        Log::info('ID pengguna yang menghapus: ' . $authUserId);
+
+        // Cek apakah ingin menghapus diri sendiri
+        if ($authUserId == $userId) {
+            return response()->json(['message' => 'Anda tidak dapat menghapus diri sendiri dari project.'], 403);
+        }
+
+        // Cek apakah yang menghapus adalah owner project
+        if ($project->iduser != $authUserId) {
+            return response()->json(['message' => 'Akses ditolak. Anda bukan pemilik project.'], 403);
+        }
+
+
+        // Hapus user dari tabel collaborator
+        $deleted = DB::table('collaborators')
+            ->where('project_id', $projectId)
+            ->where('user_id', $userId)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json(['message' => 'User berhasil dihapus dari project.']);
+        }
+    }
+
+
+    public function showDetail($id)
     {
         $project = Project::with('tasks')->find($id);
 
@@ -142,7 +214,6 @@ WHERE projects.iduser = $userid or collaborators.user_id = $userid;");
         $created = Collaborator::create([
             'project_id' => $request->project_id,
             'user_id'    => $user->id,
-            'role'       => $request->role,
         ]);
 
         Log::info('Kolaborator berhasil ditambahkan', ['collaborator' => $created]);
@@ -153,11 +224,41 @@ WHERE projects.iduser = $userid or collaborators.user_id = $userid;");
     public function checkEmail(Request $request)
     {
         $email = $request->input('email');
+        $projectId = $request->input('project_id');
 
-        $exists = User::where('email', $email)->exists();
+        // Log email dan project id yang dikirim
+        Log::info('Cek email diundang: ' . $email . ' untuk project ID: ' . $projectId);
 
-        return response()->json(['available' => $exists]);
+        // Cek jika user mencoba mengundang dirinya sendiri
+        if ($email == auth()->user()->email) {
+            Log::info('User mencoba mengundang dirinya sendiri.');
+            return response()->json(['available' => false, 'message' => 'Anda tidak bisa mengundang diri sendiri']);
+        }
+
+        // Cek apakah user dengan email tersebut ada
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            Log::info('User dengan email ' . $email . ' tidak ditemukan di tabel users.');
+            return response()->json(['available' => false, 'message' => 'Email tidak ditemukan']);
+        }
+
+        Log::info('User ditemukan: ID = ' . $user->id . ', Email = ' . $user->email);
+
+        // Cek apakah user sudah tergabung dalam project
+        $alreadyExists = DB::table('collaborators')
+            ->where('project_id', $projectId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        Log::info('Query: SELECT * FROM collaborators WHERE project_id = ' . $projectId . ' AND user_id = ' . $user->id);
+        Log::info('User sudah tergabung: ' . ($alreadyExists ? 'YA' : 'TIDAK'));
+
+        if ($alreadyExists) {
+            return response()->json(['available' => false, 'message' => 'User sudah tergabung di proyek']);
+        }
+
+        // Jika semua valid, email tersedia untuk diundang
+        return response()->json(['available' => true, 'message' => 'Email tersedia untuk diundang']);
     }
-
-
 }

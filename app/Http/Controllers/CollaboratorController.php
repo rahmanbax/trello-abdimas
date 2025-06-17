@@ -21,7 +21,6 @@ class CollaboratorController extends Controller
     $request->validate([
         'username' => 'required|string',
         'project_id' => 'required|exists:projects,id',
-        'role' => 'required|in:member,admin',
     ]);
 
     $user = User::where('username', $request->username)->first();
@@ -41,7 +40,6 @@ class CollaboratorController extends Controller
     Collaborator::create([
         'project_id' => $request->project_id,
         'user_id' => $user->id,
-        'role' => $request->role,
     ]);
 
     return back()->with('success', 'User berhasil diundang.');

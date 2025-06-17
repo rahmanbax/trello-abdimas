@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
-    <link rel="icon" href="{{ asset('assets/images/procodecg-logo2.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/images/procodecg-icon.png') }}" type="image/png">
     @vite('resources/css/app.css')
 </head>
 
@@ -44,8 +44,8 @@
         document.getElementById("registerForm").addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            // const API_BASE_URL = "https://trelloapp.id/api";
-            const API_BASE_URL = "http://127.0.0.1:8000/api";
+            const API_BASE_URL = "https://trelloapp.id/api";
+            // const API_BASE_URL = "http://127.0.0.1:8000/api";
 
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
@@ -80,6 +80,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    alert("Pendaftaran berhasil!");
                     window.location.href = '/login'; // Redirect ke halaman login setelah pendaftaran berhasil
                 } else {
                     alert("Pendaftaran gagal: " + (data.message || data.error));

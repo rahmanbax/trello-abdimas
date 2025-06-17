@@ -7,19 +7,19 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('collaborators', function (Blueprint $table) {
-        $table->id();
-        $table->unsignedBigInteger('project_id');
-        $table->unsignedBigInteger('user_id');
-        $table->timestamps();
-
-        $table->foreign('project_id')->references('idproject')->on('projects')->onDelete('cascade');
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); 
-    });
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
     }
 
     public function down()
     {
-        Schema::dropIfExists('collaborators');
+        Schema::dropIfExists('users');
     }
 };

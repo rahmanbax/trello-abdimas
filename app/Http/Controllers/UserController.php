@@ -9,24 +9,9 @@ class UserController extends Controller
     {
         $user = auth()->user(); // Mendapatkan pengguna yang sedang login
         return response()->json([
+            'id' => $user->id,
             'name' => $user->name, // Menampilkan nama pengguna
+            'email' => $user->email, // Menampilkan email pengguna
         ], 200);
     }
-
-    public function searchUser(Request $request)
-    {
-        $q = $request->query('q');
-
-        if (!$q || strlen($q) < 2) {
-            return response()->json([]);
-        }
-
-        $users = User::where('username', 'like', "%{$q}%")
-            ->limit(10)
-            ->pluck('username');
-
-        return response()->json($users);
-    }
-
-
 }

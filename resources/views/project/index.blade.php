@@ -14,11 +14,18 @@
     <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"
         integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css">
-    <link rel="icon" href="{{ asset('assets/images/procodecg-logo2.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/images/procodecg-icon.png') }}" type="image/png">
 </head>
 
 <body class="bg-slate-100">
     <x-header-nav />
+
+    @if (session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4 mx-5 lg:mx-20" role="alert">
+        <span class="block sm:inline">{{ session('error') }}</span>
+    </div>
+    @endif
+
 
     <div class="my-6 mx-5 lg:mx-20">
         <div class="flex justify-between">

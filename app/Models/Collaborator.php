@@ -16,7 +16,6 @@ class Collaborator extends Model
     protected $fillable = [
         'project_id',
         'user_id',
-        'role',
     ];
 
     // Relasi ke Project
@@ -28,6 +27,6 @@ class Collaborator extends Model
     // Relasi ke User
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

@@ -30,8 +30,32 @@
         @apply hover:text-red-500;
     }
 
+    .project-none {
+        @apply col-span-2 md:col-span-3 lg:col-span-4 rounded-lg p-10 bg-white;
+    }
+
+    .project-none h2 {
+        @apply text-lg text-center text-slate-800;
+    }
+
+    .project-none p {
+        @apply text-base text-center text-slate-800/50 mt-2;
+    }
+
+    .project-none button {
+        @apply mt-4 font-medium place-self-center flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md;
+    }
+
     .project-card {
-        @apply bg-white shadow-md hover:shadow-lg outline outline-1 outline-slate-200 text-lg text-slate-800 font-semibold p-4 rounded-md h-24;
+        @apply bg-white shadow-md hover:shadow-lg outline outline-1 outline-slate-200 p-4 min-h-28 rounded-md flex flex-col justify-between transition ease-in-out;
+    }
+
+    .project-card h2 {
+        @apply text-lg font-semibold text-slate-800;
+    }
+
+    .project-card p {
+        @apply text-sm text-slate-800/50;
     }
 
     body {

@@ -47,6 +47,11 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
+        $project = $task->project;
+        $project->update([
+            'updated_at' => now(), // Update the project timestamp
+        ]);
+
         return response()->json([
             'message' => 'Task created successfully',
             'task' => $task,
@@ -87,6 +92,11 @@ class TaskController extends Controller
 
         $task->update($validated);
 
+        $project = $task->project;
+        $project->update([
+            'updated_at' => now(), // Update the project timestamp
+        ]);
+
         return response()->json([
             'message' => 'Task updated successfully',
             'task' => $task,
@@ -105,6 +115,11 @@ class TaskController extends Controller
         }
 
         $task->delete();
+
+        $project = $task->project;
+        $project->update([
+            'updated_at' => now(), // Update the project timestamp
+        ]);
 
         return response()->json(['message' => 'Task deleted successfully'], 200);
     }

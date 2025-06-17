@@ -4,7 +4,7 @@ const API_BASE_URL = "https://trelloapp.id/api";
 const token = localStorage.getItem("access_token"); // Mengambil token
 const projectId = window.location.pathname.split("/").pop();
 
-document.getElementById('projectId').value=projectId
+document.getElementById("projectId").value = projectId;
 
 const headers = {
     Authorization: `Bearer ${token}`,
@@ -60,7 +60,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Mengambil daftar tugas
         const apiEndpoint = `${API_BASE_URL}/tasks?idproject=${projectId}`;
         const taskResponse = await fetch(apiEndpoint, { headers: headers });
+
+        if (!taskResponse.ok) {
+            const errorData = await taskResponse.json();
+            alert(errorData.message || "Akses ditolak.");
+            window.location.href = "/project"; // Redirect ke halaman daftar project
+            return; // Stop eksekusi selanjutnya
+        }
+
         const taskData = await taskResponse.json();
+
+        // console.log("Data tugas:", taskData); // Debugging data tugas
 
         if (Array.isArray(taskData) && taskData.length > 0) {
             const todo = document.getElementById("todo");
@@ -638,68 +648,309 @@ function addNewTask(taskName, projectId) {
     });
 }
 
-  // Pastikan tombol pemicu modal ada di HTML
-const inviteMemberBtn = document.getElementById('invite-member-btn');
-const modalInvite = document.getElementById('modal-invite');
-const closeModalInviteBtn = document.getElementById('close-modal-invite');
-const copyShareLinkBtn = document.getElementById('copy-share-link');
-const shareLinkInput = document.getElementById('share-link');
-const hideJoinReqBtn = document.getElementById('close-join-request');
-const joinRequestsSection = modalInvite.querySelector('div.mt-6'); // asumsi join requests ada di sini
+// Pastikan tombol pemicu modal ada di HTML
+const inviteMemberBtn = document.getElementById("invite-member-btn");
+const modalInvite = document.getElementById("modal-invite");
+const closeModalInviteBtn = document.getElementById("close-modal-invite");
+const copyShareLinkBtn = document.getElementById("copy-share-link");
+const shareLinkInput = document.getElementById("share-link");
+const hideJoinReqBtn = document.getElementById("close-join-request");
+const joinRequestsSection = modalInvite.querySelector("div.mt-6"); // asumsi join requests ada di sini
 
 // Buka modal saat tombol diklik
 if (inviteMemberBtn) {
-  inviteMemberBtn.addEventListener('click', () => {
-    modalInvite.classList.remove('hidden');
-  });
+    inviteMemberBtn.addEventListener("click", () => {
+        modalInvite.classList.remove("hidden");
+    });
 }
 
 // Tutup modal saat tombol close diklik
 if (closeModalInviteBtn) {
-  closeModalInviteBtn.addEventListener('click', () => {
-    modalInvite.classList.add('hidden');
-  });
+    closeModalInviteBtn.addEventListener("click", () => {
+        modalInvite.classList.add("hidden");
+    });
 }
 
 // Tutup modal jika klik di luar konten modal
-window.addEventListener('click', (e) => {
-  if (e.target === modalInvite) {
-    modalInvite.classList.add('hidden');
-  }
+window.addEventListener("click", (e) => {
+    if (e.target === modalInvite) {
+        modalInvite.classList.add("hidden");
+    }
 });
 
 // Tombol copy link share modern dan user friendly
 if (copyShareLinkBtn && shareLinkInput) {
-  copyShareLinkBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(shareLinkInput.value);
-      // Ganti teks tombol jadi "Copied!" sementara
-      const originalText = copyShareLinkBtn.textContent;
-      copyShareLinkBtn.textContent = 'Copied!';
-      setTimeout(() => {
-        copyShareLinkBtn.textContent = originalText;
-      }, 1500);
-    } catch (err) {
-      alert('Gagal menyalin link.');
-    }
-  });
+    copyShareLinkBtn.addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(shareLinkInput.value);
+            // Ganti teks tombol jadi "Copied!" sementara
+            const originalText = copyShareLinkBtn.textContent;
+            copyShareLinkBtn.textContent = "Copied!";
+            setTimeout(() => {
+                copyShareLinkBtn.textContent = originalText;
+            }, 1500);
+        } catch (err) {
+            alert("Gagal menyalin link.");
+        }
+    });
 }
 
 // Hide/show join requests section
 if (hideJoinReqBtn && joinRequestsSection) {
-  hideJoinReqBtn.addEventListener('click', () => {
-    if (joinRequestsSection.style.display === 'none') {
-      joinRequestsSection.style.display = 'block';
-      hideJoinReqBtn.textContent = 'Hide';
-    } else {
-      joinRequestsSection.style.display = 'none';
-      hideJoinReqBtn.textContent = 'Show';
-    }
-  });
+    hideJoinReqBtn.addEventListener("click", () => {
+        if (joinRequestsSection.style.display === "none") {
+            joinRequestsSection.style.display = "block";
+            hideJoinReqBtn.textContent = "Hide";
+        } else {
+            joinRequestsSection.style.display = "none";
+            hideJoinReqBtn.textContent = "Show";
+        }
+    });
 }
 
 // Jika mau langsung buka modal untuk demo
 function openModal() {
-  modalInvite.classList.remove('hidden');
+    modalInvite.classList.remove("hidden");
 }
 // openModal(); // uncomment jika ingin langsung buka modal saat load halaman
+
+document.addEventListener("DOMContentLoaded", function () {
+    $("#email-input").on("input", function () {
+        const email = $(this).val();
+        const projectId = $("#projectId").val();
+        const status = $("#email-status");
+        const inviteButton = $("#invite-button");
+
+        if (email.length > 3 && email.includes("@")) {
+            // validasi sederhana
+            status.text("Mencari...").css("color", "orange");
+            inviteButton.prop("disabled", true);
+            inviteButton
+                .removeClass("bg-blue-600 hover:bg-blue-500")
+                .addClass("bg-gray-300 cursor-not-allowed");
+
+            $.ajax({
+                url: `${API_BASE_URL}/check-email`,
+                method: "POST",
+                headers: headers,
+                data: JSON.stringify({
+                    email: email,
+                    project_id: projectId,
+                }),
+                success: function (response) {
+                    status
+                        .text(response.message)
+                        .css("color", response.available ? "green" : "red");
+
+                    if (response.available) {
+                        inviteButton.prop("disabled", false); // Aktifkan tombol
+                        inviteButton
+                            .removeClass("bg-gray-300 cursor-not-allowed")
+                            .addClass("bg-blue-600 hover:bg-blue-500");
+                    } else {
+                        inviteButton.prop("disabled", true); // Nonaktifkan tombol
+                        inviteButton
+                            .removeClass("bg-blue-600 hover:bg-blue-500")
+                            .addClass("bg-gray-300 cursor-not-allowed");
+                    }
+                },
+                error: function () {
+                    status.text("Error cek email").css("color", "orange");
+
+                    inviteButton.prop("disabled", true);
+                    inviteButton
+                        .removeClass("bg-blue-600 hover:bg-blue-500")
+                        .addClass("bg-gray-300 cursor-not-allowed");
+                },
+            });
+        } else {
+            status.text("");
+            inviteButton.prop("disabled", true);
+            inviteButton
+                .removeClass("bg-blue-600 hover:bg-blue-500")
+                .addClass("bg-gray-300 cursor-not-allowed");
+        }
+    });
+});
+
+fetch(`${API_BASE_URL}/project/${projectId}/users`, {
+    // ← koma di sini, bukan di luar
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
+    },
+})
+    .then((response) => response.json())
+    .then((data) => {
+        const container = document.getElementById("member-container");
+
+        // --- Generate Card untuk Owner ---
+        const owner = data.owner;
+
+        const ownerCard = document.createElement("div");
+        ownerCard.classList.add(
+            "flex",
+            "items-center",
+            "justify-between",
+            "py-3",
+            "px-4",
+            "bg-gray-100",
+            "rounded-md",
+            "mt-2"
+        );
+
+        const ownerInitial = document.createElement("div");
+        ownerInitial.classList.add(
+            "w-9",
+            "h-9",
+            "rounded-full",
+            "flex",
+            "items-center",
+            "justify-center",
+            "text-white",
+            "text-sm",
+            "font-bold"
+        );
+        ownerInitial.style.background = generateGradient();
+        ownerInitial.textContent = getInitials(owner.name);
+
+        const ownerInfo = document.createElement("div");
+        const ownerName = document.createElement("div");
+        ownerName.classList.add("font-medium", "text-sm");
+        ownerName.textContent =
+            owner.name +
+            (`${owner.id}` === loggedInUserId ? " (Anda)" : "") +
+            " - Pemilik";
+
+        const ownerEmail = document.createElement("div");
+        ownerEmail.classList.add("text-xs", "text-gray-500");
+        ownerEmail.textContent = owner.email ?? "-";
+
+        ownerInfo.appendChild(ownerName);
+        ownerInfo.appendChild(ownerEmail);
+
+        const ownerSection = document.createElement("div");
+        ownerSection.classList.add("flex", "items-center", "gap-3");
+        ownerSection.appendChild(ownerInitial);
+        ownerSection.appendChild(ownerInfo);
+
+        ownerCard.appendChild(ownerSection);
+        container.appendChild(ownerCard);
+
+        data.users.forEach((user) => {
+            const card = document.createElement("div");
+            card.classList.add(
+                "flex",
+                "items-center",
+                "justify-between",
+                "py-3",
+                "px-4",
+                "bg-gray-100",
+                "rounded-md",
+                "mt-2"
+            );
+
+            const userInitial = document.createElement("div");
+            userInitial.classList.add(
+                "w-9",
+                "h-9",
+                "rounded-full",
+                "flex",
+                "items-center",
+                "justify-center",
+                "text-white",
+                "text-sm",
+                "font-bold"
+            );
+            userInitial.style.background = generateGradient();
+            userInitial.textContent = getInitials(user.name);
+
+            const userInfo = document.createElement("div");
+            const userName = document.createElement("div");
+            userName.classList.add("font-medium", "text-sm");
+            userName.textContent =
+                user.name + (`${user.id}` === loggedInUserId ? " (Anda)" : "");
+
+            const userEmail = document.createElement("div");
+            userEmail.classList.add("text-xs", "text-gray-500");
+            userEmail.textContent = user.email ?? "-";
+
+            userInfo.appendChild(userName);
+            userInfo.appendChild(userEmail);
+
+            const leftSection = document.createElement("div");
+            leftSection.classList.add("flex", "items-center", "gap-3");
+            leftSection.appendChild(userInitial);
+            leftSection.appendChild(userInfo);
+
+            card.appendChild(leftSection);
+
+            if (`${owner.id}` === loggedInUserId) {
+                const removeButton = document.createElement("button");
+                removeButton.textContent = "Hapus";
+                removeButton.classList.add(
+                    "text-gray-500",
+                    "text-sm",
+                    "font-medium",
+                    "hover:text-red-500",
+                    "transition",
+                    "ease-in-out"
+                );
+                removeButton.onclick = () => removeUser(user.id);
+
+                card.appendChild(removeButton);
+            }
+
+            container.appendChild(card);
+        });
+    });
+
+// Fungsi untuk mengambil inisial
+function getInitials(name) {
+    const nameParts = name.trim().split(" ");
+    if (nameParts.length === 1) {
+        return nameParts[0][0].toUpperCase();
+    } else {
+        return (
+            nameParts[0][0] + nameParts[nameParts.length - 1][0]
+        ).toUpperCase();
+    }
+}
+
+// Fungsi untuk menghasilkan background gradient random
+function generateGradient() {
+    const gradients = [
+        "linear-gradient(to bottom, oklch(70.7% 0.165 254.624), oklch(54.6% 0.245 262.881))",
+        "linear-gradient(to bottom, oklch(75% 0.15 180), oklch(55% 0.20 200))",
+        "linear-gradient(to bottom, oklch(80% 0.1 50), oklch(60% 0.15 70))",
+        "linear-gradient(to bottom, oklch(90% 0.12 30), oklch(70% 0.18 60))",
+    ];
+    return gradients[Math.floor(Math.random() * gradients.length)];
+}
+
+function removeUser(userId) {
+    if (!confirm("Apakah Anda yakin ingin menghapus user ini dari project?"))
+        return;
+
+    fetch(`${API_BASE_URL}/project/${projectId}/remove/${userId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+        .then(async (response) => {
+            const data = await response.json();
+
+            if (!response.ok) {
+                // jika response tidak ok, tampilkan pesan error
+                alert(data.message || "Gagal menghapus user");
+                return;
+            }
+
+            alert(data.message || "User berhasil dihapus");
+            window.location.reload(); // Reload halaman untuk memperbarui daftar anggota
+        })
+        .catch((error) => console.error("Gagal menghapus user:", error));
+}
