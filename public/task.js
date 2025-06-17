@@ -652,10 +652,6 @@ function addNewTask(taskName, projectId) {
 const inviteMemberBtn = document.getElementById("invite-member-btn");
 const modalInvite = document.getElementById("modal-invite");
 const closeModalInviteBtn = document.getElementById("close-modal-invite");
-const copyShareLinkBtn = document.getElementById("copy-share-link");
-const shareLinkInput = document.getElementById("share-link");
-const hideJoinReqBtn = document.getElementById("close-join-request");
-const joinRequestsSection = modalInvite.querySelector("div.mt-6"); // asumsi join requests ada di sini
 
 // Buka modal saat tombol diklik
 if (inviteMemberBtn) {
@@ -677,36 +673,6 @@ window.addEventListener("click", (e) => {
         modalInvite.classList.add("hidden");
     }
 });
-
-// Tombol copy link share modern dan user friendly
-if (copyShareLinkBtn && shareLinkInput) {
-    copyShareLinkBtn.addEventListener("click", async () => {
-        try {
-            await navigator.clipboard.writeText(shareLinkInput.value);
-            // Ganti teks tombol jadi "Copied!" sementara
-            const originalText = copyShareLinkBtn.textContent;
-            copyShareLinkBtn.textContent = "Copied!";
-            setTimeout(() => {
-                copyShareLinkBtn.textContent = originalText;
-            }, 1500);
-        } catch (err) {
-            alert("Gagal menyalin link.");
-        }
-    });
-}
-
-// Hide/show join requests section
-if (hideJoinReqBtn && joinRequestsSection) {
-    hideJoinReqBtn.addEventListener("click", () => {
-        if (joinRequestsSection.style.display === "none") {
-            joinRequestsSection.style.display = "block";
-            hideJoinReqBtn.textContent = "Hide";
-        } else {
-            joinRequestsSection.style.display = "none";
-            hideJoinReqBtn.textContent = "Show";
-        }
-    });
-}
 
 // Jika mau langsung buka modal untuk demo
 function openModal() {
