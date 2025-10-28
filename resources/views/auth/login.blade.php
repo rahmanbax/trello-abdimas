@@ -9,8 +9,6 @@
 
     <link rel="icon" href="{{ asset('assets/images/procodecg-icon.png') }}" type="image/png">
     @vite('resources/css/app.css')
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-slate-100 flex min-h-screen">
