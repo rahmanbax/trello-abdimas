@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://trelloapp.id/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+// const API_BASE_URL = "https://trelloapp.id/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token"); // Mengambil token
 const projectId = window.location.pathname.split("/").pop();
@@ -750,6 +750,41 @@ fetch(`${API_BASE_URL}/project/${projectId}/users`, {
     .then((response) => response.json())
     .then((data) => {
         const container = document.getElementById("member-container");
+        const bubbles = document.getElementById("user-bubbles");
+        
+        bubbles.innerHTML = "";
+
+        // Owner bubble
+        const ownerBubble = document.createElement("div");
+        ownerBubble.classList.add(
+            "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
+            "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow"
+        );
+        ownerBubble.style.background = generateGradient();
+        ownerBubble.textContent = getInitials(data.owner.name);
+        bubbles.appendChild(ownerBubble);
+
+        // Tambahkan event listener untuk owner bubble
+        ownerBubble.addEventListener('mouseenter', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
+        ownerBubble.addEventListener('mousemove', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
+        ownerBubble.addEventListener('mouseleave', hideTooltip);
+
+        // User bubbles
+        data.users.forEach((user) => {
+            const userBubble = document.createElement("div");
+            userBubble.classList.add(
+                "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
+                "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow"
+            );
+            userBubble.style.background = generateGradient();
+            userBubble.textContent = getInitials(user.name);
+            bubbles.appendChild(userBubble);
+
+            // Tambahkan event listener untuk setiap user bubble
+            userBubble.addEventListener('mouseenter', (e) => showTooltip(e, user.name));
+            userBubble.addEventListener('mousemove', (e) => showTooltip(e, user.name));
+            userBubble.addEventListener('mouseleave', hideTooltip);
+        });
 
         // --- Generate Card untuk Owner ---
         const owner = data.owner;
@@ -919,4 +954,33 @@ function removeUser(userId) {
             window.location.reload(); // Reload halaman untuk memperbarui daftar anggota
         })
         .catch((error) => console.error("Gagal menghapus user:", error));
+}
+
+// Functin buat nampilin bubble
+
+function showTooltip(e, text) {
+    let tooltip = document.getElementById('bubble-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'bubble-tooltip';
+        tooltip.className = 'bubble-tooltip';
+        document.body.appendChild(tooltip);
+    }
+    tooltip.textContent = text;
+    tooltip.style.opacity = 1;
+
+    // Tunggu browser render ukuran tooltip
+    setTimeout(() => {
+        const bubbleRect = e.target.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        tooltip.style.left = bubbleRect.left + window.scrollX + bubbleRect.width / 2 - tooltipRect.width / 2 + 'px';
+        tooltip.style.top = bubbleRect.top + window.scrollY - tooltipRect.height - 12 + 'px';
+    }, 0);
+}
+
+function hideTooltip() {
+    const tooltip = document.getElementById('bubble-tooltip');
+    if (tooltip) {
+        tooltip.style.opacity = 0;
+    }
 }

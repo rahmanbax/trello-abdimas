@@ -20,13 +20,16 @@
 
 
     <div class="my-6 mx-5 lg:mx-20 ">
-        <div class="flex justify-between bg-white p-4 outline outline-1 outline-slate-200 shadow-md rounded-lg">
+        <div class="flex justify-between bg-white p-4 outline-1 outline-slate-200 shadow-md rounded-lg">
             <h1 id="project-name" class="font-semibold text-3xl"></h1>
             <div class="flex gap-3 items-center ">
+
+                <div id="user-bubbles" class="flex -space-x-3 mr-5"></div>
 
                 <button id="add-task-btn"
                 class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md"><i
                 class="ph-bold ph-plus"></i>Tambah tugas</button>
+                
                 
                 <button id="invite-member-btn"
                     class="font-medium flex items-center gap-2 py-2 px-3 text-blue-500 rounded-md bg-white border border-blue-500 hover:bg-gray-100 shadow-sm">
@@ -193,6 +196,14 @@
                                 <input type="text" id="taskname-edit" name="taskname-edit"
                                     class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
                                     placeholder="Nama tugas" aria-labelledby="taskname-edit" autocomplete="off" />
+                                    <div class="py-2 flex gap-3 mt-4">
+                                        <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
+                                            <p>+ Member</p>
+                                        </div>
+                                        <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
+                                            <p>+ Label</p>
+                                        </div>
+                                    </div>
                             </div>
                         </div>
                     </div>

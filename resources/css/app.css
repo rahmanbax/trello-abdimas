@@ -1,14 +1,18 @@
-@tailwind base;
+@import "tailwindcss";
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
-@font-face {
-    font-family: "Satoshi";
-    src: url("../../public/fonts/Satoshi-Medium.woff2") format("woff2"),
-        url("../../public/fonts/Satoshi-Bold.woff2") format("woff2");
-        
+/* 2. Tambahkan @font-face Anda ke dalam 'base' layer */
+@layer base {
+    @font-face {
+        font-family: "Satoshi";
+        src: url("../../public/fonts/Satoshi-Medium.woff2") format("woff2"),
+             url("../../public/fonts/Satoshi-Bold.woff2") format("woff2");
+    }
 }
 
+/* 3. Definisikan komponen kustom Anda di 'components' layer */
 @layer components {
     .task-card {
         @apply break-all max-w-full flex gap-3 p-3 min-h-fit max-h-fit justify-between bg-gray-50 hover:cursor-pointer outline outline-1 outline-slate-200 hover:shadow-md text-base text-slate-800 items-center rounded-md transition ease-out duration-100 hover:scale-[1.02] active:scale-[1] active:shadow-none;
@@ -61,6 +65,31 @@
     body {
         @apply overflow-x-hidden;
     }
+}
 
-    /* ... */
+/* Custom CSS/JS */
+
+.bubble-tooltip {
+    position: absolute;
+    background: #fff;
+    color: #222;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.bubble-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #fff transparent transparent transparent;
 }
