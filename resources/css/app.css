@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/* @import "tailwindcss"; */
 /* @tailwind base;
 @tailwind components;
 @tailwind utilities; */
@@ -92,4 +92,13 @@
     border-width: 6px;
     border-style: solid;
     border-color: #fff transparent transparent transparent;
+}
+
+/* Bubble CSS */
+#user-bubbles > div {
+    margin-left: -8px;
+}
+
+#user-bubbles > div:first-child {
+    margin-left: 0;
 }

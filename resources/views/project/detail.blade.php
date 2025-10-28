@@ -12,6 +12,8 @@
         href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css" />
     @vite('resources/css/app.css')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
@@ -24,7 +26,7 @@
             <h1 id="project-name" class="font-semibold text-3xl"></h1>
             <div class="flex gap-3 items-center ">
 
-                <div id="user-bubbles" class="flex -space-x-3 mr-5"></div>
+                <div id="user-bubbles" class="flex items-center mr-10" style="margin-left: 8px;"></div>
 
                 <button id="add-task-btn"
                 class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md"><i

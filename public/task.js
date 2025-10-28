@@ -754,6 +754,10 @@ fetch(`${API_BASE_URL}/project/${projectId}/users`, {
         
         bubbles.innerHTML = "";
 
+        const maxVisibleBubbles = 4;
+        const totalUsers = 1 + data.users.length; 
+        const remainingUsers = totalUsers - maxVisibleBubbles;
+
         // Owner bubble
         const ownerBubble = document.createElement("div");
         ownerBubble.classList.add(
@@ -764,27 +768,46 @@ fetch(`${API_BASE_URL}/project/${projectId}/users`, {
         ownerBubble.textContent = getInitials(data.owner.name);
         bubbles.appendChild(ownerBubble);
 
-        // Tambahkan event listener untuk owner bubble
         ownerBubble.addEventListener('mouseenter', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
         ownerBubble.addEventListener('mousemove', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
         ownerBubble.addEventListener('mouseleave', hideTooltip);
 
         // User bubbles
-        data.users.forEach((user) => {
+        const visibleUsers = data.users.slice(0, maxVisibleBubbles - 1);
+        
+        visibleUsers.forEach((user) => {
             const userBubble = document.createElement("div");
             userBubble.classList.add(
                 "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
-                "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow"
+                "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow",
+                "-ml-2"
             );
             userBubble.style.background = generateGradient();
             userBubble.textContent = getInitials(user.name);
             bubbles.appendChild(userBubble);
 
-            // Tambahkan event listener untuk setiap user bubble
             userBubble.addEventListener('mouseenter', (e) => showTooltip(e, user.name));
             userBubble.addEventListener('mousemove', (e) => showTooltip(e, user.name));
             userBubble.addEventListener('mouseleave', hideTooltip);
         });
+
+        // Jika ada user lebih dari maksimal, tampilkan bubble "+N"
+        if (remainingUsers > 0) {
+            const moreBubble = document.createElement("div");
+            moreBubble.classList.add(
+                "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
+                "bg-gray-400", "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow",
+                "-ml-2"
+            );
+            moreBubble.textContent = `+${remainingUsers}`;
+            bubbles.appendChild(moreBubble);
+
+            // Tooltip untuk bubble +N
+            const hiddenUserNames = data.users.slice(maxVisibleBubbles - 1).map(u => u.name).join(', ');
+            moreBubble.addEventListener('mouseenter', (e) => showTooltip(e, hiddenUserNames));
+            moreBubble.addEventListener('mousemove', (e) => showTooltip(e, hiddenUserNames));
+            moreBubble.addEventListener('mouseleave', hideTooltip);
+        }
 
         // --- Generate Card untuk Owner ---
         const owner = data.owner;
