@@ -98,47 +98,4 @@ class CollaboratorController extends Controller
             'message' => 'User berhasil diundang sebagai kolaborator.'
         ]);
     }
-
-    public function checkEmail(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'project_id' => 'required|exists:projects,idproject',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return response()->json([
-                'available' => false,
-                'message' => 'User tidak ditemukan'
-            ]);
-        }
-
-        // Cek apakah user adalah owner
-        $project = Project::find($request->project_id);
-        if ($project->iduser == $user->id) {
-            return response()->json([
-                'available' => false,
-                'message' => 'User adalah owner proyek ini'
-            ]);
-        }
-
-        // Cek apakah user sudah menjadi collaborator
-        $isCollaborator = Collaborator::where('project_id', $request->project_id)
-            ->where('user_id', $user->id)
-            ->exists();
-
-        if ($isCollaborator) {
-            return response()->json([
-                'available' => false,
-                'message' => 'User sudah menjadi anggota proyek'
-            ]);
-        }
-
-        return response()->json([
-            'available' => true,
-            'message' => 'User dapat diundang'
-        ]);
-    }
 }

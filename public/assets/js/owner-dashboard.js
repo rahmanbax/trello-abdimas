@@ -1,6 +1,6 @@
-// owner-dashboard.js
-//  const API_BASE_URL = "https://trelloapp.id/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://trelloapp.id/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
+
 const token = localStorage.getItem("access_token");
 const headers = {
     'Authorization': `Bearer ${token}`,
@@ -62,15 +62,18 @@ function renderOwnerProjects(projects) {
         let memberAvatars = '';
         if (project.users && project.users.length > 0) {
             memberNames = project.users.map(u => u.name).join(', ');
-            memberAvatars = project.users.map((u, idx) => `
-                <span 
-                    class="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white border-2 border-white ${idx !== 0 ? '-mr-2' : ''} shadow"
-                    style="background: ${generateGradient()};"
-                    title="${u.name} (${u.email})">
-                    ${getInitials(u.name)}
+
+            // Bubble Avatar Bagian Dashboard Owner
+                memberAvatars = project.users.map((u, idx) => `
+                <span class="member-avatar relative inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white border-2 border-white ${idx > 0 ? '-ml-2' : ''} shadow cursor-pointer transition-transform hover:scale-110 hover:z-10"
+                style="background: ${generateGradient()};">
+                ${getInitials(u.name)}
+                <span class="bubble-tooltip">
+                    ${u.name}
                 </span>
-            `).join('');
-        }
+            </span>
+        `).join('');
+    }
 
         const projectCard = `
             <div class="project-card bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0 w-[400px]">

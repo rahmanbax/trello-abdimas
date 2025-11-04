@@ -124,9 +124,6 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
-    
-
-
     public function removeUser($projectId, $userId)
     {
         $authUserId = auth()->user()->id;
@@ -146,7 +143,6 @@ class ProjectController extends Controller
         if ($project->iduser != $authUserId) {
             return response()->json(['message' => 'Akses ditolak. Anda bukan pemilik project.'], 403);
         }
-
 
         // Hapus user dari tabel collaborator
         $deleted = DB::table('collaborators')
