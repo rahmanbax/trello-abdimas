@@ -9,10 +9,11 @@ class Collaborator extends Model
 {
     use HasFactory;
 
-    // Jika nama tabel tidak standar (bukan 'collaborators'), definisikan seperti ini:
     protected $table = 'collaborators';
+    
+    // Jika primary key bukan 'id', sesuaikan
+    // protected $primaryKey = 'id_collaborator';
 
-    // Tentukan atribut yang boleh diisi massal (mass assignable)
     protected $fillable = [
         'project_id',
         'user_id',
@@ -21,7 +22,7 @@ class Collaborator extends Model
     // Relasi ke Project
     public function project()
     {
-        return $this->belongsTo(Project::class, 'project_id');
+        return $this->belongsTo(Project::class, 'project_id', 'idproject');
     }
 
     // Relasi ke User

@@ -124,36 +124,7 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
-    public function getProjectUsers($idproject)
-    {
-        // Ambil project beserta relasi collaborators dan user dari masing-masing collaborator
-        $project = Project::with('collaborators.user')->find($idproject);
-
-        if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
-        }
-
-        // Ambil user dari relasi collaborators
-        $users = $project->collaborators->map(function ($collaborator) {
-            return [
-                'id' => $collaborator->user->id,
-                'name' => $collaborator->user->name,
-                'email' => $collaborator->user->email,
-            ];
-        });
-
-        // Ambil informasi pemilik project
-        $owner = [
-            'id' => $project->iduser, // Kolom iduser adalah id pemilik
-            'name' => $project->user->name, // Pastikan project punya relasi ke user
-            'email' => $project->user->email,
-        ];
-
-        return response()->json([
-            'users' => $users,
-            'owner' => $owner,
-        ]);
-    }
+    
 
 
     public function removeUser($projectId, $userId)
@@ -260,5 +231,137 @@ class ProjectController extends Controller
 
         // Jika semua valid, email tersedia untuk diundang
         return response()->json(['available' => true, 'message' => 'Email tersedia untuk diundang']);
+    }
+
+    public function getMyProjects(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            
+            $projects = Project::with(['owner:id,name,email', 'collaborators.user:id,name,email'])
+                ->where('iduser', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $formattedProjects = $projects->map(function($project) {
+                $users = collect();
+                
+                // Tambahkan owner
+                if ($project->owner) {
+                    $users->push([
+                        'id' => $project->owner->id,
+                        'name' => $project->owner->name,
+                        'email' => $project->owner->email,
+                        'role' => 'owner'
+                    ]);
+                }
+                
+                // Tambahkan collaborators
+                foreach ($project->collaborators as $collab) {
+                    if ($collab->user) {
+                        $users->push([
+                            'id' => $collab->user->id,
+                            'name' => $collab->user->name,
+                            'email' => $collab->user->email,
+                            'role' => 'collaborator'
+                        ]);
+                    }
+                }
+
+                return [
+                    'idproject' => $project->idproject,
+                    'nama_project' => $project->nama_project,
+                    'created_at' => $project->created_at,
+                    'updated_at' => $project->updated_at,
+                    'user_role' => 'owner',
+                    'users' => $users
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedProjects,
+                'count' => $formattedProjects->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching my projects: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat projects',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function getAllProjects()
+    {
+        try {
+            $user = auth()->user();
+            if (! $user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+            $userid = $user->id;
+
+            // Ambil hanya project yang owner-nya user ini atau user ini jadi collaborator
+            $projects = Project::with(['owner:id,name,email', 'collaborators.user:id,name,email'])
+                ->where(function ($q) use ($userid) {
+                    $q->where('iduser', $userid)
+                      ->orWhereHas('collaborators', function ($q2) use ($userid) {
+                          $q2->where('user_id', $userid);
+                      });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $result = $projects->map(function($project) {
+                $users = collect();
+
+                if ($project->owner) {
+                    $users->push([
+                        'id' => $project->owner->id,
+                        'name' => $project->owner->name,
+                        'email' => $project->owner->email,
+                        'role' => 'owner'
+                    ]);
+                }
+
+                foreach ($project->collaborators as $collab) {
+                    if ($collab->user) {
+                        $users->push([
+                            'id' => $collab->user->id,
+                            'name' => $collab->user->name,
+                            'email' => $collab->user->email,
+                            'role' => 'collaborator'
+                        ]);
+                    }
+                }
+
+                return [
+                    'idproject' => $project->idproject,
+                    'nama_project' => $project->nama_project,
+                    'created_at' => $project->created_at,
+                    'updated_at' => $project->updated_at,
+                    'owner_id' => $project->iduser,
+                    'users' => $users,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $result
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching all projects: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch projects'
+            ], 500);
+        }
     }
 }

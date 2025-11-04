@@ -6,42 +6,139 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Collaborator;
+use Illuminate\Support\Facades\DB;
 
 class CollaboratorController extends Controller
 {
-
     public function show(Project $project)
     {
-        // Kirim data project ke view
         return view('projects.show', compact('project'));
     }
 
-   public function invite(Request $request)
-{
-    $request->validate([
-        'username' => 'required|string',
-        'project_id' => 'required|exists:projects,id',
-    ]);
-
-    $user = User::where('username', $request->username)->first();
-
-    if (!$user) {
-        return back()->with('error', 'User tidak ditemukan.');
+    public function getProjectUsers($projectId)
+    {
+        try {
+            // Cari project dengan owner
+            $project = Project::with('owner')->findOrFail($projectId);
+            
+            // Ambil semua collaborators termasuk data user-nya
+            $collaborators = Collaborator::with('user')
+                ->where('project_id', $projectId)
+                ->get();
+            
+            return response()->json([
+                'owner' => [
+                    'id' => $project->owner->id,
+                    'name' => $project->owner->name,
+                    'email' => $project->owner->email
+                ],
+                'users' => $collaborators->map(function($collaborator) {
+                    return [
+                        'id' => $collaborator->user->id,
+                        'name' => $collaborator->user->name,
+                        'email' => $collaborator->user->email
+                    ];
+                })
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Project not found',
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
 
-    $exists = Collaborator::where('project_id', $request->project_id)
-        ->where('user_id', $user->id)
-        ->exists();
+    public function invite(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'project_id' => 'required|exists:projects,idproject',
+        ]);
 
-    if ($exists) {
-        return back()->with('info', 'User sudah menjadi kolaborator.');
+        // Cari user berdasarkan email
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User dengan email tersebut tidak ditemukan.'
+            ], 404);
+        }
+
+        // Cek apakah user adalah owner project
+        $project = Project::find($request->project_id);
+        if ($project->iduser == $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User adalah owner proyek ini.'
+            ], 409);
+        }
+
+        // Cek apakah user sudah menjadi collaborator
+        $exists = Collaborator::where('project_id', $request->project_id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User sudah menjadi kolaborator proyek ini.'
+            ], 409);
+        }
+
+        // Tambahkan sebagai collaborator
+        Collaborator::create([
+            'project_id' => $request->project_id,
+            'user_id' => $user->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil diundang sebagai kolaborator.'
+        ]);
     }
 
-    Collaborator::create([
-        'project_id' => $request->project_id,
-        'user_id' => $user->id,
-    ]);
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'project_id' => 'required|exists:projects,idproject',
+        ]);
 
-    return back()->with('success', 'User berhasil diundang.');
-}
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'available' => false,
+                'message' => 'User tidak ditemukan'
+            ]);
+        }
+
+        // Cek apakah user adalah owner
+        $project = Project::find($request->project_id);
+        if ($project->iduser == $user->id) {
+            return response()->json([
+                'available' => false,
+                'message' => 'User adalah owner proyek ini'
+            ]);
+        }
+
+        // Cek apakah user sudah menjadi collaborator
+        $isCollaborator = Collaborator::where('project_id', $request->project_id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($isCollaborator) {
+            return response()->json([
+                'available' => false,
+                'message' => 'User sudah menjadi anggota proyek'
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'message' => 'User dapat diundang'
+        ]);
+    }
 }

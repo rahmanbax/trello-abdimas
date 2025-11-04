@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://trelloapp.id/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+ const API_BASE_URL = "https://trelloapp.id/api";
+//const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token"); // Mengambil token
 const projectId = window.location.pathname.split("/").pop();
@@ -10,6 +10,53 @@ const headers = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
 };
+
+
+function fetchProjectUsers() {
+    $.ajax({
+        url: `${API_BASE_URL}/projects/${projectId}/users`,
+        type: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        success: function (response) {
+            const memberContainer = $("#member-container");
+            memberContainer.empty();
+
+            // Tampilkan owner
+            memberContainer.append(
+                `<div class="flex items-center gap-2">
+                    <span class="font-semibold">${response.owner.name}</span>
+                    <span class="text-xs text-blue-600 font-bold">(Owner)</span>
+                    <span class="text-xs text-gray-500">${response.owner.email}</span>
+                </div>`
+            );
+
+            // Tampilkan kolaborator
+            response.users.forEach(user => {
+                memberContainer.append(
+                    `<div class="flex items-center gap-2">
+                        <span>${user.name}</span>
+                        <span class="text-xs text-gray-500">${user.email}</span>
+                    </div>`
+                );
+            });
+        },
+        error: function (xhr) {
+            console.error("Gagal mengambil user:", xhr);
+        }
+    });
+}
+
+// Panggil fungsi ini saat modal "Bagikan Board" dibuka
+$("#invite-member-btn").click(function () {
+    fetchProjectUsers();
+    $("#modal-invite").removeClass("hidden");
+});
+
+$(document).ready(function () {
+    fetchProjectUsers();
+});
 
 // drag and drop functionality for tasks in a kanban board
 // jangan diubah2
@@ -57,7 +104,7 @@ const checkIfOrderChanged = (boardId, taskElement) => {
 
 document.addEventListener("DOMContentLoaded", async function () {
     try {
-        // Mengambil daftar tugas
+        // Kode untuk fetch dan render task di sini
         const apiEndpoint = `${API_BASE_URL}/tasks?idproject=${projectId}`;
         const taskResponse = await fetch(apiEndpoint, { headers: headers });
 
@@ -84,10 +131,22 @@ document.addEventListener("DOMContentLoaded", async function () {
                 taskDiv.dataset.id = task.idtask;
                 taskDiv.dataset.projectId = task.idproject;
 
-                // Inner content (task title + description)
+                let userAvatars = '';
+                if (Array.isArray(task.users)) {
+                    userAvatars = task.users.map(u => `
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold text-white border-2 border-white mr-2"
+                              style="background: ${generateGradient()};"
+                              title="${u.name} (${u.email})">
+                            ${getInitials(u.name)}
+                        </span>
+                    `).join('');
+                }
                 taskDiv.innerHTML = `
-            <h5 class="text-lg font-medium text-black">${task.nama_task}</h5>
-    `;
+                    <div class="flex items-center gap-2 mb-1">
+                        ${userAvatars}
+                        <h5 class="text-lg font-medium text-black">${task.nama_task}</h5>
+                    </div>
+                `;
 
                 const editDeleteDiv = document.createElement("div");
                 editDeleteDiv.classList.add("edit-delete");
@@ -625,10 +684,8 @@ function addNewTask(taskName, projectId) {
     const data = {
         nama_task: taskName,
         idproject: projectId,
-        order: lastOrder + 1, // last index +1
+        order: lastOrder + 1,
     };
-
-    // console.log("Data yang dikirim ke API:", data); // Debugging
 
     $.ajax({
         url: `${API_BASE_URL}/tasks`,
@@ -738,185 +795,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
-
-fetch(`${API_BASE_URL}/project/${projectId}/users`, {
-    // ← koma di sini, bukan di luar
-    method: "GET",
-    headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
-    },
-})
-    .then((response) => response.json())
-    .then((data) => {
-        const container = document.getElementById("member-container");
-
-        // --- Generate Card untuk Owner ---
-        const owner = data.owner;
-
-        const ownerCard = document.createElement("div");
-        ownerCard.classList.add(
-            "flex",
-            "items-center",
-            "justify-between",
-            "py-3",
-            "px-4",
-            "bg-gray-100",
-            "rounded-md",
-            "mt-2"
-        );
-
-        const ownerInitial = document.createElement("div");
-        ownerInitial.classList.add(
-            "w-9",
-            "h-9",
-            "rounded-full",
-            "flex",
-            "items-center",
-            "justify-center",
-            "text-white",
-            "text-sm",
-            "font-bold"
-        );
-        ownerInitial.style.background = generateGradient();
-        ownerInitial.textContent = getInitials(owner.name);
-
-        const ownerInfo = document.createElement("div");
-        const ownerName = document.createElement("div");
-        ownerName.classList.add("font-medium", "text-sm");
-        ownerName.textContent =
-            owner.name +
-            (`${owner.id}` === loggedInUserId ? " (Anda)" : "") +
-            " - Pemilik";
-
-        const ownerEmail = document.createElement("div");
-        ownerEmail.classList.add("text-xs", "text-gray-500");
-        ownerEmail.textContent = owner.email ?? "-";
-
-        ownerInfo.appendChild(ownerName);
-        ownerInfo.appendChild(ownerEmail);
-
-        const ownerSection = document.createElement("div");
-        ownerSection.classList.add("flex", "items-center", "gap-3");
-        ownerSection.appendChild(ownerInitial);
-        ownerSection.appendChild(ownerInfo);
-
-        ownerCard.appendChild(ownerSection);
-        container.appendChild(ownerCard);
-
-        data.users.forEach((user) => {
-            const card = document.createElement("div");
-            card.classList.add(
-                "flex",
-                "items-center",
-                "justify-between",
-                "py-3",
-                "px-4",
-                "bg-gray-100",
-                "rounded-md",
-                "mt-2"
-            );
-
-            const userInitial = document.createElement("div");
-            userInitial.classList.add(
-                "w-9",
-                "h-9",
-                "rounded-full",
-                "flex",
-                "items-center",
-                "justify-center",
-                "text-white",
-                "text-sm",
-                "font-bold"
-            );
-            userInitial.style.background = generateGradient();
-            userInitial.textContent = getInitials(user.name);
-
-            const userInfo = document.createElement("div");
-            const userName = document.createElement("div");
-            userName.classList.add("font-medium", "text-sm");
-            userName.textContent =
-                user.name + (`${user.id}` === loggedInUserId ? " (Anda)" : "");
-
-            const userEmail = document.createElement("div");
-            userEmail.classList.add("text-xs", "text-gray-500");
-            userEmail.textContent = user.email ?? "-";
-
-            userInfo.appendChild(userName);
-            userInfo.appendChild(userEmail);
-
-            const leftSection = document.createElement("div");
-            leftSection.classList.add("flex", "items-center", "gap-3");
-            leftSection.appendChild(userInitial);
-            leftSection.appendChild(userInfo);
-
-            card.appendChild(leftSection);
-
-            if (`${owner.id}` === loggedInUserId) {
-                const removeButton = document.createElement("button");
-                removeButton.textContent = "Hapus";
-                removeButton.classList.add(
-                    "text-gray-500",
-                    "text-sm",
-                    "font-medium",
-                    "hover:text-red-500",
-                    "transition",
-                    "ease-in-out"
-                );
-                removeButton.onclick = () => removeUser(user.id);
-
-                card.appendChild(removeButton);
-            }
-
-            container.appendChild(card);
-        });
-    });
-
-// Fungsi untuk mengambil inisial
 function getInitials(name) {
-    const nameParts = name.trim().split(" ");
-    if (nameParts.length === 1) {
-        return nameParts[0][0].toUpperCase();
-    } else {
-        return (
-            nameParts[0][0] + nameParts[nameParts.length - 1][0]
-        ).toUpperCase();
-    }
+    return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase();
 }
-
-// Fungsi untuk menghasilkan background gradient random
 function generateGradient() {
-    const gradients = [
-        "linear-gradient(to bottom, oklch(70.7% 0.165 254.624), oklch(54.6% 0.245 262.881))",
-        "linear-gradient(to bottom, oklch(75% 0.15 180), oklch(55% 0.20 200))",
-        "linear-gradient(to bottom, oklch(80% 0.1 50), oklch(60% 0.15 70))",
-        "linear-gradient(to bottom, oklch(90% 0.12 30), oklch(70% 0.18 60))",
+    const colors = [
+        ['#6EE7B7', '#3B82F6'],
+        ['#FDE68A', '#FCA5A5'],
+        ['#A5B4FC', '#F472B6'],
+        ['#F9A8D4', '#F87171'],
+        ['#FCD34D', '#34D399'],
     ];
-    return gradients[Math.floor(Math.random() * gradients.length)];
+    const idx = Math.floor(Math.random() * colors.length);
+    return `linear-gradient(135deg, ${colors[idx][0]}, ${colors[idx][1]})`;
 }
 
-function removeUser(userId) {
-    if (!confirm("Apakah Anda yakin ingin menghapus user ini dari project?"))
-        return;
-
-    fetch(`${API_BASE_URL}/project/${projectId}/remove/${userId}`, {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-    })
-        .then(async (response) => {
-            const data = await response.json();
-
-            if (!response.ok) {
-                // jika response tidak ok, tampilkan pesan error
-                alert(data.message || "Gagal menghapus user");
-                return;
-            }
-
-            alert(data.message || "User berhasil dihapus");
-            window.location.reload(); // Reload halaman untuk memperbarui daftar anggota
-        })
-        .catch((error) => console.error("Gagal menghapus user:", error));
-}

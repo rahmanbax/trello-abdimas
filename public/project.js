@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://trelloapp.id/api";
+ const API_BASE_URL = "https://trelloapp.id/api";
 // const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -47,15 +47,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const data = await response.json();
 
-        // console.log("Respons dari server:", data); // Debug respons server
-
-        if (Array.isArray(data) && data.length > 0) {
+        const projects = data.data || data;
+        if (Array.isArray(projects) && projects.length > 0) {
             // Referensi ke elemen kontainer di halaman
             const projectContainer =
                 document.getElementById("project-container");
 
             // Loop melalui data proyek yang diterima
-            data.forEach((project) => {
+            projects.forEach((project) => {
                 // Membuat elemen div untuk card proyek
                 const projectCard = document.createElement("div");
                 projectCard.classList.add("project-card");

@@ -40,7 +40,7 @@
             const password = document.getElementById("password").value;
 
             const API_BASE_URL = "https://trelloapp.id/api";
-            // const API_BASE_URL = "http://127.0.0.1:8000/api";
+            //const API_BASE_URL = "http://127.0.0.1:8000/api";
 
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: "POST",

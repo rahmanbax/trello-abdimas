@@ -19,6 +19,11 @@
                     class="hidden absolute right-0 z-10 mt-3 w-44 origin-top-right bg-white shadow-lg ring-1 ring-black/5 focus:outline-none rounded-md"
                     role="user" aria-orientation="vertical" aria-labelledby="user-button" tabindex="-1">
                     <div class="p-1" role="none">
+                        <button 
+                            class="font-medium flex gap-2 items-center text-slate-700 text-base px-4 py-2 hover:bg-slate-100 w-full rounded-md"
+                            role="menuitem" tabindex="-1" id="dashboard-btn">
+                            <i class="ph-bold ph-layout-dashboard"></i>Dashboard
+                        </button>
                         <button
                             class="font-medium flex gap-2 items-center text-red-500 text-base px-4 py-2 hover:bg-slate-100 w-full rounded-md"
                             role="menuitem" tabindex="-1" id="logout-btn">
@@ -118,5 +123,10 @@
             } catch (error) {
                 console.error("Terjadi kesalahan saat logout:", error);
             }
+        });
+    document
+        .getElementById("dashboard-btn")
+        .addEventListener("click", function() {
+            window.location.href = "/my-projects";
         });
 </script>

@@ -156,8 +156,7 @@
 
                         <div class="text-left">
                             <label for="taskname" class="text-base font-semibold text-gray-900"
-                                id="modal-title">Tambah
-                                tugas baru</label>
+                                id="modal-title">Tambah tugas baru</label>
                             <div class="mt-2">
                                 <input type="text" id="taskname" name="taskname"
                                     class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
