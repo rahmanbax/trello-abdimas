@@ -22,7 +22,7 @@
                         <button 
                             class="font-medium flex gap-2 items-center text-slate-700 text-base px-4 py-2 hover:bg-slate-100 w-full rounded-md"
                             role="menuitem" tabindex="-1" id="dashboard-btn">
-                            <i class="ph-bold ph-layout-dashboard"></i>Dashboard
+                            <i class="ph-bold ph-squares-four"></i>Dashboard
                         </button>
                         <button
                             class="font-medium flex gap-2 items-center text-red-500 text-base px-4 py-2 hover:bg-slate-100 w-full rounded-md"

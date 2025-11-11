@@ -23,7 +23,7 @@
 
     <div class="my-6 mx-5 lg:mx-20">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-semibold">Daftar Project Saya</h2>
+            <h2 class="text-2xl font-semibold">Dashboard Daftar Project</h2>
             <div class="flex items-center gap-3">
                 <input id="project-search" type="search" placeholder="Cari project..." 
                     class="px-3 py-2 border border-gray-300 rounded-md w-64 focus:ring-blue-500 focus:border-blue-500" />
