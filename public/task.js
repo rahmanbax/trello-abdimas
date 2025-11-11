@@ -11,43 +11,6 @@ const headers = {
     "Content-Type": "application/json",
 };
 
-
-function fetchProjectUsers() {
-    $.ajax({
-        url: `${API_BASE_URL}/projects/${projectId}/users`,
-        type: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        success: function (response) {
-            const memberContainer = $("#member-container");
-            memberContainer.empty();
-
-            // Tampilkan owner
-            memberContainer.append(
-                `<div class="flex items-center gap-2">
-                    <span class="font-semibold">${response.owner.name}</span>
-                    <span class="text-xs text-blue-600 font-bold">(Owner)</span>
-                    <span class="text-xs text-gray-500">${response.owner.email}</span>
-                </div>`
-            );
-
-            // Tampilkan kolaborator
-            response.users.forEach(user => {
-                memberContainer.append(
-                    `<div class="flex items-center gap-2">
-                        <span>${user.name}</span>
-                        <span class="text-xs text-gray-500">${user.email}</span>
-                    </div>`
-                );
-            });
-        },
-        error: function (xhr) {
-            console.error("Gagal mengambil user:", xhr);
-        }
-    });
-}
-
 // Panggil fungsi ini saat modal "Bagikan Board" dibuka
 $("#invite-member-btn").click(function () {
     fetchProjectUsers();
@@ -796,14 +759,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-fetch(`${API_BASE_URL}/project/${projectId}/users`, {
+    fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
     // ← koma di sini, bukan di luar
     method: "GET",
     headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Mengirimkan token untuk autentikasi
-    },
-})
+        Authorization: `Bearer ${token}`,
+        },
+    })
     .then((response) => response.json())
     .then((data) => {
         const container = document.getElementById("member-container");
@@ -967,19 +930,14 @@ fetch(`${API_BASE_URL}/project/${projectId}/users`, {
 
             card.appendChild(leftSection);
 
-            if (`${owner.id}` === loggedInUserId) {
+            if (`${data.owner.id}` === loggedInUserId) {
                 const removeButton = document.createElement("button");
                 removeButton.textContent = "Hapus";
                 removeButton.classList.add(
-                    "text-gray-500",
-                    "text-sm",
-                    "font-medium",
-                    "hover:text-red-500",
-                    "transition",
-                    "ease-in-out"
+                    "text-gray-500", "text-sm", "font-medium",
+                    "hover:text-red-500", "transition", "ease-in-out"
                 );
-                removeButton.onclick = () => removeUser(user.id);
-
+                removeButton.onclick = () => removeUser(user.id); // ← MEMANGGIL FUNGSI HAPUS
                 card.appendChild(removeButton);
             }
 

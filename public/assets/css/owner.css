@@ -253,3 +253,36 @@
 .task-board-container::-webkit-scrollbar-thumb:hover {
     background: #ccc;
 }
+
+/* Tooltip untuk bubble user */
+.bubble-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    background-color: white;
+    color: black;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 1000;
+}
+
+.bubble-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: white;
+}
+
+.member-avatar:hover .bubble-tooltip {
+    opacity: 1;
+}
