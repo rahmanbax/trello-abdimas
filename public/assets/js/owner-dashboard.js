@@ -1,7 +1,5 @@
-// owner-dashboard.js
-
-const API_BASE_URL = "https://trelloapp.id/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+// const API_BASE_URL = "https://trelloapp.id/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token");
 const headers = {
@@ -330,7 +328,6 @@ function generateGradient() {
 }
 
 function renderVerticalTaskBoard(projectId, tasks) {
-    // Kelompokkan task per status
     const statusMap = {
         '1': { 
             label: 'To Do', 
@@ -361,15 +358,14 @@ function renderVerticalTaskBoard(projectId, tasks) {
         }
     });
 
-    // Render VERTIKAL
-    let html = `<div class="task-board flex flex-col gap-4 ">`;
+    let html = `<div class="task-board flex flex-col gap-4">`;
 
     Object.keys(statusMap).forEach(status => {
         const { tasks, color, borderColor, label, icon } = statusMap[status];
         const taskCount = tasks.length;
 
         html += `
-            <div class="status-column ${borderColor} border rounded-lg bg-gray-50 mb-2 ">
+            <div class="status-column ${borderColor} border rounded-lg bg-gray-50 mb-2">
                 <div class="status-header flex items-center justify-between p-4 ${color} rounded-t-lg">
                     <div class="flex items-center gap-2">
                         <i class="ph-bold ${icon}"></i>
@@ -379,12 +375,11 @@ function renderVerticalTaskBoard(projectId, tasks) {
                         ${taskCount}
                     </span>
                 </div>
-                <div class="task-list p-3 space-y-3 min-h-10 ">
+                <div class="task-list sortable-task-list p-3 space-y-3 min-h-10" data-status="${status}" data-project-id="${projectId}">
         `;
 
         if (tasks.length > 0) {
             tasks.forEach(task => {
-                // Ambil user dari task (misal: task.user atau task.users[0])
                 let userAvatar = '';
                 if (task.user && task.user.name) {
                     const initials = getInitials(task.user.name);
@@ -405,10 +400,11 @@ function renderVerticalTaskBoard(projectId, tasks) {
                 }
 
                 html += `
-                    <div class="task-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer flex items-center">
+                    <div class="task-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-move flex items-center"
+                         data-task-id="${task.idtask}">
                         <div class="flex-1">
                             <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
-                                ${task.nama_task || task.name || task.title || 'Task #' + task.id}
+                                ${task.nama_task || task.name || task.title || 'Task #' + task.idtask}
                             </h5>
                             ${task.deskripsi ? `
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
@@ -429,7 +425,7 @@ function renderVerticalTaskBoard(projectId, tasks) {
             });
         } else {
             html += `
-                <div class="text-center py-8 text-gray-400">
+                <div class="text-center py-8 text-gray-400 empty-placeholder">
                     <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
                     <p class="text-xs">Tidak ada task</p>
                 </div>
@@ -445,6 +441,70 @@ function renderVerticalTaskBoard(projectId, tasks) {
     html += `</div>`;
 
     $(`#task-board-${projectId}`).html(html);
+
+    // Initialize sortable untuk drag & drop
+    initSortableTasks(projectId);
+}
+
+// Fungsi baru untuk Drag & Drop tasks
+
+// Initialize drag & drop untuk tasks
+function initSortableTasks(projectId) {
+    $(`.sortable-task-list[data-project-id="${projectId}"]`).sortable({
+        connectWith: `.sortable-task-list[data-project-id="${projectId}"]`,
+        placeholder: "task-placeholder",
+        cursor: "move",
+        tolerance: "pointer",
+        helper: "clone",
+        opacity: 0.6,
+        receive: function(event, ui) {
+            const taskId = ui.item.data('task-id');
+            const newStatus = $(this).data('status');
+            const projectId = $(this).data('project-id');
+            
+            // Hapus empty placeholder jika ada
+            $(this).find('.empty-placeholder').remove();
+            
+            // Update status task via API
+            updateTaskStatus(taskId, newStatus, projectId);
+        },
+        remove: function(event, ui) {
+            // Jika kolom jadi kosong, tambahkan empty placeholder
+            if ($(this).children('.task-card').length === 0) {
+                $(this).html(`
+                    <div class="text-center py-8 text-gray-400 empty-placeholder">
+                        <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
+                        <p class="text-xs">Tidak ada task</p>
+                    </div>
+                `);
+            }
+        }
+    }).disableSelection();
+}
+
+// Update status task via API
+function updateTaskStatus(taskId, newStatus, projectId) {
+    $.ajax({
+        url: `${API_BASE_URL}/tasks/${taskId}`,
+        type: "PUT",
+        headers: headers,
+        data: JSON.stringify({ 
+            status: newStatus 
+        }),
+        success: function(response) {
+            console.log(`Task ${taskId} berhasil dipindahkan ke status ${newStatus}`);
+            
+            // Update counter badge
+            loadProjectTasks(projectId);
+        },
+        error: function(xhr) {
+            console.error('Gagal memindahkan task:', xhr);
+            alert('Gagal memindahkan task. Silakan coba lagi.');
+            
+            // Reload tasks untuk reset posisi
+            loadProjectTasks(projectId);
+        }
+    });
 }
 
 // Format date

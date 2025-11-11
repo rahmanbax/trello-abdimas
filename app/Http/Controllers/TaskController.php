@@ -77,30 +77,46 @@ class TaskController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $task = Task::find($id);
-
-        if (!$task) {
-            return response()->json(['message' => 'Task not found'], 404);
+        try {
+            // Cari task
+            $task = Task::findOrFail($id);
+            
+            // Validasi input
+            $validated = $request->validate([
+                'status' => 'sometimes|required|in:1,2,3',
+                'nama_task' => 'sometimes|required|string|max:255',
+                'deskripsi' => 'sometimes|nullable|string',
+                'order' => 'sometimes|integer',
+            ]);
+            
+            // Update task
+            $task->update($validated);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Task berhasil diupdate',
+                'data' => $task
+            ], 200);
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task tidak ditemukan'
+            ], 404);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update task: ' . $e->getMessage()
+            ], 500);
         }
-
-        $validated = $request->validate([
-            'nama_task' => 'nullable|string|max:255',
-            'status' => 'nullable|in:1,2,3',
-            'order' => 'nullable|integer',
-            'idproject' => 'required|exists:projects,idproject',
-        ]);
-
-        $task->update($validated);
-
-        $project = $task->project;
-        $project->update([
-            'updated_at' => now(), // Update the project timestamp
-        ]);
-
-        return response()->json([
-            'message' => 'Task updated successfully',
-            'task' => $task,
-        ], 200);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Middleware\CheckProjectAccess;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
 
 
 // Route yang aman TANPA middleware
@@ -46,12 +47,11 @@ Route::middleware([CheckJwtToken::class])->group(function () {
         return redirect('/my-projects');
     });
 
-
     Route::post('/project/invite', [CollaboratorController::class, 'invite'])->name('collaborators.invite');
     // Route::get('/project/{id}', [ProjectController::class, 'showDetail'])->name('projects.showDetail');
     // Route::post('/project/invite', [ProjectController::class, 'invite'])->name('project.invite');
     // Route::post('/check-email', [ProjectController::class, 'checkEmail'])->name('check.email');
     Route::get('/api/projects/{id}/users', [CollaboratorController::class, 'getProjectUsers']);
-    Route::post('/api/check-email', [CollaboratorController::class, 'checkEmail']);
+    // Route::post('/api/check-email', [CollaboratorController::class, 'checkEmail']);
     Route::get('/api/projects', [ProjectController::class, 'getAllProjects']);
 });
