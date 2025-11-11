@@ -147,7 +147,7 @@
     background: #666;
 }
 
-/* Custom scrollbar */
+
 .scrollbar-thin::-webkit-scrollbar {
     height: 8px;
 }
@@ -166,7 +166,7 @@
     background: #666;
 }
 
-/* Reset existing container styles */
+
 #projects-container {
     display: flex;
     gap: 1.5rem;
@@ -175,15 +175,14 @@
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    /* Remove fixed width calculation */
     width: 100%;
 }
 
 /* Project card styles */
 .project-card {
-    flex: 0 0 auto; /* Prevent shrinking */
-    width: 400px; /* Fixed width */
-    margin-right: 0; /* Remove margin, using gap instead */
+    flex: 0 0 auto; 
+    width: 400px; 
+    margin-right: 0;
     scroll-snap-align: start;
 }
 
@@ -194,46 +193,30 @@
     padding: 1rem 0;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    /* Hide scrollbar jika tidak diperlukan */
-    scrollbar-width: thin;
+    scrollbar-width: none;    
+    -ms-overflow-style: none;
 }
+
 
 .projects-wrapper::-webkit-scrollbar {
-    height: 8px;
-}
-
-.projects-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.projects-wrapper::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.projects-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #666;
+    display: none;
+    height: 0;
 }
 
 #projects-container {
     display: inline-flex;
     gap: 1.5rem;
-    padding: 0 1.25rem; /* Sesuaikan dengan mx-5 (1.25rem) */
+    padding: 0 1.25rem; 
     min-width: min-content;
     white-space: nowrap;
-}
-
-.project-card {
-    flex: 0 0 auto;
-    width: 400px;
-    scroll-snap-align: start;
 }
 
 /* Pastikan konten task board bisa scroll vertikal */
 .task-board-container {
     max-height: 500px;
     overflow-y: auto;
+    scrollbar-width: none;    
+    -ms-overflow-style: none;
 }
 
 .task-board-container::-webkit-scrollbar {

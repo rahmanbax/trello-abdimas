@@ -1,4 +1,3 @@
-
 // owner-dashboard.js
 
 const API_BASE_URL = "https://trelloapp.id/api";
@@ -10,6 +9,8 @@ const headers = {
     'Content-Type': 'application/json'
 };
 
+let projectsCache = [];
+
 // Load projects milik owner saja
 function loadOwnerProjects() {
     $.ajax({
@@ -17,7 +18,9 @@ function loadOwnerProjects() {
         type: "GET",
         headers: headers,
         success: function(response) {
-            renderOwnerProjects(response.data || response);
+            // simpan ke cache, lalu render
+            projectsCache = response.data || response || [];
+            renderOwnerProjects(projectsCache);
         },
         error: function(xhr) {
             console.error("Gagal memuat projects:", xhr);
@@ -33,6 +36,35 @@ function loadOwnerProjects() {
     });
 }
 
+// Debounce helper
+function debounce(fn, delay = 300) {
+    let timer = null;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// Inisialisasi search field
+function initSearch() {
+    const $input = $('#project-search');
+    if (!$input.length) return;
+
+    const handleSearch = debounce(function() {
+        const q = $input.val().trim().toLowerCase();
+        if (!q) {
+            renderOwnerProjects(projectsCache);
+            return;
+        }
+        const filtered = projectsCache.filter(p => {
+            return (p.nama_project || '').toString().toLowerCase().includes(q);
+        });
+        renderOwnerProjects(filtered);
+    }, 250);
+
+    $input.off('input.search').on('input.search', handleSearch);
+}
+
 // Render projects milik owner dengan tampilan horizontal task board
 function renderOwnerProjects(projects) {
     const container = $('#projects-container');
@@ -46,7 +78,6 @@ function renderOwnerProjects(projects) {
                 <p class="text-sm text-gray-400 mt-1">Klik "Tambah Project" untuk membuat project pertama Anda</p>
             </div>
         `);
-        $('#scroll-controls').addClass('hidden');
         return;
     }
 
@@ -568,6 +599,7 @@ function initModalHandlers() {
 function initOwnerDashboard() {
     loadOwnerProjects();
     initModalHandlers();
+    initSearch(); // <-- call search init
 }
 
 // Load dashboard ketika document ready

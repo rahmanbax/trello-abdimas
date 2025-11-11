@@ -24,13 +24,19 @@
     <div class="my-6 mx-5 lg:mx-20">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-semibold">Daftar Project Saya</h2>
-            <button id="open-modal-create" class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md">
-                <i class="ph-bold ph-plus"></i>Tambah Project
-            </button>
+            <div class="flex items-center gap-3">
+                <input id="project-search" type="search" placeholder="Cari project..." 
+                    class="px-3 py-2 border border-gray-300 rounded-md w-64 focus:ring-blue-500 focus:border-blue-500" />
+
+                <button id="open-modal-create" class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md">
+                    <i class="ph-bold ph-plus"></i>Tambah Project
+                </button>
+            </div>
         </div>
 
-        <!-- Perbaiki wrapper structure -->
-        <div class="projects-wrapper"> <!-- Ganti class disini -->
+        
+
+        <div class="projects-wrapper">
             <div id="projects-container">
                 <div class="text-center py-10 text-gray-500">
                     <i class="ph-bold ph-circle-notch animate-spin text-2xl mb-2"></i>
@@ -38,8 +44,6 @@
                 </div>
             </div>
         </div>
-
-        
     </div>
 
     <!-- Modal Create Project -->
