@@ -110,15 +110,14 @@ function renderOwnerProjects(projects) {
         const projectCard = `
             <div class="project-card bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0 w-[400px]">
                 <!-- Project Header -->
-                <div class="p-3 border-b border-gray-200 mb-3">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex-1">
-                            <h3 class="font-bold text-xl text-gray-900 mb-2">
+                <div class="p-3 border-b border-gray-200 mb-3 ">
+                    <div class="flex items-center w-full mb-2">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="project-title font-bold text-xl text-gray-900 leading-tight truncate" title="${project.nama_project}">
                                 ${project.nama_project}
                             </h3>
                         </div>
-                        
-                        <div class="flex gap-2">
+                        <div class="flex items-end gap-2 ml-4 flex-shrink-0">
                             <a href="/project/${project.idproject}" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center gap-2">
                                 <i class="ph-bold ph-arrow-square-out"></i>
                                 Buka Project

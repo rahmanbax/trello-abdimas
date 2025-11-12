@@ -178,6 +178,15 @@
     width: 100%;
 }
 
+/* Limitasi panjang judul project pada card */
+.project-title {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;   /* atau width card - padding kanan & tombol2 */
+}
+
 /* Project card styles */
 .project-card {
     flex: 0 0 auto; 
@@ -185,6 +194,7 @@
     margin-right: 0;
     scroll-snap-align: start;
 }
+
 
 /* Wrapper styles */
 .projects-wrapper {
