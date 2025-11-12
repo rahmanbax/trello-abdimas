@@ -492,22 +492,140 @@ function deleteTask(taskId) {
     });
 }
 
-// ambil nama proyek dari URL dan tampilkan di halaman
+// Ambil nama proyek dari URL dan tampilkan di halaman
 const projectNameElement = document.getElementById("project-name");
 $.ajax({
     url: `${API_BASE_URL}/projects/${projectId}`,
     type: "GET",
+    headers: headers,
     success: function (response) {
-        projectNameElement.textContent = response.nama_project; // Menampilkan nama proyek di halaman
-        document.title = `${response.nama_project} | ProCodeCG`;
+        const projectName = response.nama_project;
+        
+        // Set title
+        projectNameElement.textContent = projectName;
+        document.title = `${projectName} | ProCodeCG`;
+        
+        // Tambahkan class truncate secara default
+        const titleElement = $("#project-name");
+        titleElement.addClass('project-title-truncate');
+        
+        // Initialize click to expand/collapse
+        setTimeout(() => {
+            // Check if title is truncated
+            const isTruncated = titleElement[0].scrollWidth > titleElement[0].clientWidth;
+            
+            if (isTruncated) {
+                titleElement.css('cursor', 'pointer');
+                
+                let isExpanded = false;
+                titleElement.on('click', function() {
+                    if (!isExpanded) {
+                        // Expand
+                        $(this).removeClass('project-title-truncate').addClass('project-title-expanded');
+                        isExpanded = true;
+                    } else {
+                        // Collapse
+                        $(this).removeClass('project-title-expanded').addClass('project-title-truncate');
+                        isExpanded = false;
+                    }
+                });
+            }
+            
+            // Tooltip on hover - KEMBALIKAN mousemove event
+            titleElement.on('mouseenter', function(e) {
+                showProjectTitleTooltip(e, projectName);
+            });
+            
+            // Event mousemove untuk bikin tooltip ngikut cursor
+            titleElement.on('mousemove', function(e) {
+                updateProjectTitleTooltipPosition(e);
+            });
+            
+            titleElement.on('mouseleave', function() {
+                hideProjectTitleTooltip();
+            });
+        }, 100);
     },
     error: function (xhr, status, error) {
         console.error("Gagal mengambil data proyek:", error);
-        console.log("Respons dari server:", xhr.responseText);
         alert("Halaman yang ingin kamu akses tidak ada");
         window.location.href = "/project";
     },
 });
+
+// Fungsi tooltip untuk project title
+function showProjectTitleTooltip(e, text) {
+    // Remove existing tooltip
+    const existingTooltip = document.getElementById('project-title-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+    
+    // Check semua bubble-tooltip yang mungkin ada
+    const allBubbleTooltips = document.querySelectorAll('.bubble-tooltip');
+    allBubbleTooltips.forEach(t => t.remove());
+    
+    // Create new tooltip
+    const tooltip = document.createElement('div');
+    tooltip.id = 'project-title-tooltip';
+    tooltip.className = 'bubble-tooltip';
+    tooltip.textContent = text;
+    document.body.appendChild(tooltip);
+    
+    // Calculate position after tooltip is rendered
+    setTimeout(() => {
+        const titleElement = document.getElementById('project-name');
+        const rect = titleElement.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        
+        // Center above the title
+        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        let top = rect.top - tooltipRect.height - 10;
+        
+        // Keep within viewport horizontally
+        if (left < 10) left = 10;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        
+        // If not enough space above, show below
+        if (top < 10) {
+            top = rect.bottom + 10;
+        }
+        
+        tooltip.style.position = 'fixed';
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.opacity = '1';
+        tooltip.style.zIndex = '10000';
+        tooltip.style.maxWidth = '400px';
+        tooltip.style.whiteSpace = 'normal';
+        tooltip.style.wordWrap = 'break-word';
+        tooltip.style.lineHeight = '1.5';
+    }, 0);
+}
+
+function updateProjectTitleTooltipPosition(e) {
+    const tooltip = $('#project-title-tooltip');
+    if (tooltip.length && tooltip.css('opacity') === '1') {
+        const tooltipRect = tooltip[0].getBoundingClientRect();
+        const left = e.clientX - (tooltipRect.width / 2);
+        const top = e.clientY - tooltipRect.height - 12;
+        
+        tooltip.css({
+            left: left + 'px',
+            top: top + 'px'
+        });
+    }
+}
+
+function hideProjectTitleTooltip() {
+    const tooltip = $('#project-title-tooltip');
+    if (tooltip.length) {
+        tooltip.css('opacity', '0');
+        setTimeout(() => tooltip.remove(), 200);
+    }
+}
 
 // Dropdown menu untuk detail projek
 
@@ -993,7 +1111,21 @@ function removeUser(userId) {
 
 // Functin buat nampilin bubble
 
+// Variable untuk prevent tooltip muncul saat initial load
+let tooltipReady = false;
+
+// Set tooltipReady setelah page fully loaded
+$(document).ready(function() {
+    setTimeout(() => {
+        tooltipReady = true;
+    }, 500); // Delay 500ms setelah page load
+});
+
+// Function buat nampilin bubble tooltip
 function showTooltip(e, text) {
+    // Prevent tooltip muncul saat initial load
+    if (!tooltipReady) return;
+    
     let tooltip = document.getElementById('bubble-tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
@@ -1008,8 +1140,11 @@ function showTooltip(e, text) {
     setTimeout(() => {
         const bubbleRect = e.target.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
-        tooltip.style.left = bubbleRect.left + window.scrollX + bubbleRect.width / 2 - tooltipRect.width / 2 + 'px';
-        tooltip.style.top = bubbleRect.top + window.scrollY - tooltipRect.height - 12 + 'px';
+        const left = bubbleRect.left + window.scrollX + bubbleRect.width / 2 - tooltipRect.width / 2;
+        const top = bubbleRect.top + window.scrollY - tooltipRect.height - 12;
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
     }, 0);
 }
 
@@ -1017,5 +1152,10 @@ function hideTooltip() {
     const tooltip = document.getElementById('bubble-tooltip');
     if (tooltip) {
         tooltip.style.opacity = 0;
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        }, 200);
     }
 }

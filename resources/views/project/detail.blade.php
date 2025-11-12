@@ -21,8 +21,11 @@
 
     <div class="my-6 mx-5 lg:mx-20 ">
         <div class="flex justify-between bg-white p-4 outline-1 outline-slate-200 shadow-md rounded-lg">
-            <h1 id="project-name" class="font-semibold text-3xl"></h1>
-            <div class="flex gap-3 items-center ">
+            <div class="flex-1 min-w-0">
+                <h1 id="project-name" class="font-semibold text-3xl project-title-truncate"></h1>
+            </div>
+
+            <div class="flex gap-3 items-center shrink-0">
 
                 <div id="user-bubbles" class="flex items-center mr-10" style="margin-left: 8px;"></div>
 
@@ -196,14 +199,14 @@
                                 <input type="text" id="taskname-edit" name="taskname-edit"
                                     class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
                                     placeholder="Nama tugas" aria-labelledby="taskname-edit" autocomplete="off" />
-                                    <div class="py-2 flex gap-3 mt-4">
+                                    <!-- <div class="py-2 flex gap-3 mt-4">
                                         <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
                                             <p>+ Member</p>
                                         </div>
                                         <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
                                             <p>+ Label</p>
                                         </div>
-                                    </div>
+                                    </div> -->
                             </div>
                         </div>
                     </div>

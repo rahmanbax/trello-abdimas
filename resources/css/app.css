@@ -68,6 +68,23 @@
 }
 
 /* Custom CSS/JS */
+.project-card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    min-height: 4.2em;
+    max-height: 4.2em;
+    word-break: break-word;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.project-card-title:hover {
+    color: #2563eb;
+}
 
 .bubble-tooltip {
     position: absolute;
@@ -101,4 +118,140 @@
 
 #user-bubbles > div:first-child {
     margin-left: 0;
+}
+
+/* Project Title Tooltip */
+.project-tooltip {
+    position: fixed;
+    background: #1f2937;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: normal;
+    max-width: 400px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+.project-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+/* Hover effect pada project title */
+.project-title {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.project-title:hover {
+    color: #2563eb;
+}
+
+/* Project title truncate dengan max-width */
+.project-title-truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* Ubah jadi 1 baris saja */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    max-height: 1.3em; /* 1 baris x line-height */
+    max-width: calc(100vw - 600px); /* Batas agar tidak menyentuh bubble user */
+    word-break: break-word;
+    transition: all 0.3s ease;
+}
+
+/* Responsive max-width */
+@media (max-width: 1024px) {
+    .project-title-truncate {
+        max-width: calc(100vw - 400px);
+    }
+}
+
+@media (max-width: 768px) {
+    .project-title-truncate {
+        max-width: calc(100vw - 250px);
+    }
+}
+
+.project-title-truncate:hover {
+    color: #2563eb;
+    cursor: pointer;
+}
+
+/* Saat di-expand */
+.project-title-expanded {
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    max-height: none !important;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Disable default browser tooltip */
+.project-title {
+    position: relative;
+}
+
+.project-title[title] {
+    cursor: default;
+}
+
+/* Custom tooltip styling */
+#project-tooltip.bubble-tooltip {
+    max-width: 400px;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.5;
+    padding: 8px 12px;
+    font-size: 14px;
+    z-index: 9999;
+}
+
+.project-title:hover + .bubble-tooltip {
+    opacity: 1;
+}
+
+/* Disable tooltip bawaan browser untuk elemen tertentu */
+#project-name {
+    pointer-events: auto; /* Pastikan element masih bisa di-click */
+}
+
+#project-name[title] {
+    position: relative;
+}
+
+/* Hide default browser tooltip dengan ::before dan ::after */
+#project-name[title]::before,
+#project-name[title]::after {
+    display: none !important;
+}
+
+/* Alternatif: gunakan attribute selector untuk semua element dengan title */
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after {
+    display: none !important;
+}
+
+/* Atau disable untuk semua tooltip bawaan di dalam project header */
+.flex.justify-between [title] {
+    pointer-events: none;
+}
+
+.flex.justify-between [title]:hover {
+    pointer-events: auto;
 }

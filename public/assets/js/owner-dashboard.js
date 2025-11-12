@@ -97,7 +97,7 @@ function renderOwnerProjects(projects) {
 
             // Bubble Avatar Bagian Dashboard Owner
                 memberAvatars = project.users.map((u, idx) => `
-                <span class="member-avatar relative inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white border-2 border-white ${idx > 0 ? '-ml-2' : ''} shadow cursor-pointer transition-transform hover:scale-110 hover:z-10"
+                <span class="member-avatar relative inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-normal text-white border-2 border-white ${idx > 0 ? '-ml-2' : ''} shadow cursor-pointer transition-transform hover:scale-110 hover:z-10"
                 style="background: ${generateGradient()};">
                 ${getInitials(u.name)}
                 <span class="bubble-tooltip">
@@ -110,29 +110,39 @@ function renderOwnerProjects(projects) {
         const projectCard = `
             <div class="project-card bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0 w-[400px]">
                 <!-- Project Header -->
-                <div class="p-3 border-b border-gray-200 mb-3 ">
-                    <div class="flex items-center w-full mb-2">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="project-title font-bold text-xl text-gray-900 leading-tight truncate" title="${project.nama_project}">
-                                ${project.nama_project}
-                            </h3>
+                <div class="p-3 border-b border-gray-200 mb-3">
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                        <!-- Left: Project Title dengan tooltip -->
+                        <div class="flex-1 min-w-0 relative">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="project-title font-bold text-xl text-gray-900 leading-tight break-words cursor-pointer">
+                                    ${project.nama_project}
+                                </h3>
+                            </div>
+                            <span class="bubble-tooltip">${project.nama_project}</span>
                         </div>
-                        <div class="flex items-end gap-2 ml-4 flex-shrink-0">
-                            <a href="/project/${project.idproject}" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center gap-2">
+                        
+                        <!-- Right: Buttons -->
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <a href="/project/${project.idproject}" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
                                 <i class="ph-bold ph-arrow-square-out"></i>
                                 Buka Project
                             </a>
-                            <button class="project-menu-btn p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded" data-project-id="${project.idproject}">
+                            <button class="project-menu-btn p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded flex-shrink-0" 
+                                    data-project-id="${project.idproject}">
                                 <i class="ph-bold ph-dots-three"></i>
                             </button>
                         </div>
                     </div>
+                    
                     <div class="flex items-center gap-4 text-sm text-gray-600 mb-2 mt-3">
                         <span class="flex items-center gap-1">
                             <i class="ph-bold ph-calendar"></i>
                             Dibuat: ${formatDate(project.created_at)}
                         </span>
                     </div>
+                    
                     ${memberNames ? `
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex items-center">

@@ -23,3 +23,13 @@
     border-style: solid;
     border-color: #222 transparent transparent transparent;
 }
+
+/* Disable tooltip untuk project title saja */
+#project-name .bubble-tooltip {
+    display: none !important;
+}
+
+/* Hanya tampilkan tooltip dari JavaScript */
+#project-title-tooltip.bubble-tooltip {
+    display: block !important;
+}
