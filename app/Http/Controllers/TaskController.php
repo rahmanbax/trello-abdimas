@@ -7,16 +7,17 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {
-
     public function index(Request $request)
     {
         // Mengambil parameter 'idproject' dari query string
-        $idProject = $request->query('idproject');
+        $idProject = $request->query("idproject");
 
         // Memastikan bahwa idproject ada dalam query dan valid
         if ($idProject) {
             // Menyaring data task berdasarkan 'idproject'
-            $tasks = Task::where('idproject', $idProject)->orderBy('order')->get();
+            $tasks = Task::where("idproject", $idProject)
+                ->orderBy("order")
+                ->get();
         } else {
             // Jika tidak ada parameter 'idproject', ambil semua data task
             $tasks = Task::all();
@@ -40,22 +41,36 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_task' => 'required|string|max:255',
-            'order' => 'required|integer',
-            'idproject' => 'required|exists:projects,idproject',
+            "nama_task" => "required|string|max:255",
+            "order" => "sometimes|integer",
+            "idproject" => "required|exists:projects,idproject",
         ]);
+
+        // Jika order tidak dikirim, set otomatis ke max(order) + 1 untuk project ini
+        if (!isset($validated["order"])) {
+            $maxOrder = Task::where("idproject", $validated["idproject"])->max(
+                "order",
+            );
+            $validated["order"] = is_null($maxOrder) ? 1 : $maxOrder + 1;
+        }
 
         $task = Task::create($validated);
 
+        // (opsional) load hubungan jika diperlukan
+        // $task->load('user');
+
         $project = $task->project;
         $project->update([
-            'updated_at' => now(), // Update the project timestamp
+            "updated_at" => now(), // Update the project timestamp
         ]);
 
-        return response()->json([
-            'message' => 'Task created successfully',
-            'task' => $task,
-        ], 201);
+        return response()->json(
+            [
+                "message" => "Task created successfully",
+                "task" => $task,
+            ],
+            201,
+        );
     }
 
     /**
@@ -63,10 +78,10 @@ class TaskController extends Controller
      */
     public function show($id)
     {
-        $task = Task::with('project')->find($id);
+        $task = Task::with("project")->find($id);
 
         if (!$task) {
-            return response()->json(['message' => 'Task not found'], 404);
+            return response()->json(["message" => "Task not found"], 404);
         }
 
         return response()->json($task, 200);
@@ -80,42 +95,51 @@ class TaskController extends Controller
         try {
             // Cari task
             $task = Task::findOrFail($id);
-            
+
             // Validasi input
             $validated = $request->validate([
-                'status' => 'sometimes|required|in:1,2,3',
-                'nama_task' => 'sometimes|required|string|max:255',
-                'deskripsi' => 'sometimes|nullable|string',
-                'order' => 'sometimes|integer',
+                "status" => "sometimes|required|in:1,2,3",
+                "nama_task" => "sometimes|required|string|max:255",
+                "deskripsi" => "sometimes|nullable|string",
+                "order" => "sometimes|integer",
             ]);
-            
+
             // Update task
             $task->update($validated);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Task berhasil diupdate',
-                'data' => $task
-            ], 200);
-            
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Task berhasil diupdate",
+                    "data" => $task,
+                ],
+                200,
+            );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Task tidak ditemukan'
-            ], 404);
-            
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Task tidak ditemukan",
+                ],
+                404,
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $e->errors()
-            ], 422);
-            
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Validasi gagal",
+                    "errors" => $e->errors(),
+                ],
+                422,
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal update task: ' . $e->getMessage()
-            ], 500);
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Gagal update task: " . $e->getMessage(),
+                ],
+                500,
+            );
         }
     }
 
@@ -127,27 +151,30 @@ class TaskController extends Controller
         $task = Task::find($id);
 
         if (!$task) {
-            return response()->json(['message' => 'Task not found'], 404);
+            return response()->json(["message" => "Task not found"], 404);
         }
 
         $task->delete();
 
         $project = $task->project;
         $project->update([
-            'updated_at' => now(), // Update the project timestamp
+            "updated_at" => now(), // Update the project timestamp
         ]);
 
-        return response()->json(['message' => 'Task deleted successfully'], 200);
+        return response()->json(
+            ["message" => "Task deleted successfully"],
+            200,
+        );
     }
 
     public function detail(Request $request)
     {
         // Mengambil parameter 'idproject' dari query string
-        $idProject = $request->query('idproject');
+        $idProject = $request->query("idproject");
 
         // Jika parameter idproject diberikan, kita filter data berdasarkan idproject
         if ($idProject) {
-            $tasks = Task::where('idproject', $idProject)->get();
+            $tasks = Task::where("idproject", $idProject)->get();
         } else {
             // Jika tidak ada parameter idproject, kembalikan semua data task
             $tasks = Task::all();

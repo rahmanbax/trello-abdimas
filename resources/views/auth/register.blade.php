@@ -44,8 +44,8 @@
         document.getElementById("registerForm").addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            const API_BASE_URL = "https://trelloapp.id/api";
-            // const API_BASE_URL = "http://127.0.0.1:8000/api";
+            // const API_BASE_URL = "https://trelloapp.id/api";
+            const API_BASE_URL = "http://127.0.0.1:8000/api";
 
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;

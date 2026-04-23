@@ -1,10 +1,10 @@
-const API_BASE_URL = "https://trelloapp.id/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+// const API_BASE_URL = "https://trelloapp.id/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token");
 const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
 };
 
 let projectsCache = [];
@@ -15,14 +15,14 @@ function loadOwnerProjects() {
         url: `${API_BASE_URL}/projects`,
         type: "GET",
         headers: headers,
-        success: function(response) {
+        success: function (response) {
             // simpan ke cache, lalu render
             projectsCache = response.data || response || [];
             renderOwnerProjects(projectsCache);
         },
-        error: function(xhr) {
+        error: function (xhr) {
             console.error("Gagal memuat projects:", xhr);
-            $('#projects-container').html(`
+            $("#projects-container").html(`
                 <div class="text-center py-10 text-red-500">
                     <p>Gagal memuat projects</p>
                     <button onclick="loadOwnerProjects()" class="mt-2 text-blue-600 hover:text-blue-500">
@@ -30,14 +30,14 @@ function loadOwnerProjects() {
                     </button>
                 </div>
             `);
-        }
+        },
     });
 }
 
 // Debounce helper
 function debounce(fn, delay = 300) {
     let timer = null;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timer);
         timer = setTimeout(() => fn.apply(this, args), delay);
     };
@@ -45,27 +45,63 @@ function debounce(fn, delay = 300) {
 
 // Inisialisasi search field
 function initSearch() {
-    const $input = $('#project-search');
+    const $input = $("#project-search");
     if (!$input.length) return;
 
-    const handleSearch = debounce(function() {
+    const handleSearch = debounce(function () {
         const q = $input.val().trim().toLowerCase();
         if (!q) {
             renderOwnerProjects(projectsCache);
             return;
         }
-        const filtered = projectsCache.filter(p => {
-            return (p.nama_project || '').toString().toLowerCase().includes(q);
+        const filtered = projectsCache.filter((p) => {
+            return (p.nama_project || "").toString().toLowerCase().includes(q);
         });
         renderOwnerProjects(filtered);
     }, 250);
 
-    $input.off('input.search').on('input.search', handleSearch);
+    $input.off("input.search").on("input.search", handleSearch);
+}
+
+// Func Add to Task
+function addTaskToProject(projectId, taskName) {
+    if (!taskName || !(taskName + "").trim()) {
+        if (window.toastr) toastr.warning("Nama tugas tidak boleh kosong");
+        else alert("Nama tugas tidak boleh kosong");
+        return;
+    }
+
+    const payload = {
+        nama_task: (taskName + "").trim(),
+        idproject: projectId,
+    };
+
+    $.ajax({
+        url: `${API_BASE_URL}/tasks`,
+        type: "POST",
+        headers: headers,
+        contentType: "application/json",
+        data: JSON.stringify(payload),
+        success: function (res) {
+            if (window.toastr)
+                toastr.success(res.message || "Tugas berhasil ditambahkan");
+            loadProjectTasks(projectId);
+        },
+        error: function (xhr) {
+            console.error("Gagal menambahkan task:", xhr);
+            const msg =
+                xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : "Gagal menambahkan task";
+            if (window.toastr) toastr.error(msg);
+            else alert(msg);
+        },
+    });
 }
 
 // Render projects milik owner dengan tampilan horizontal task board
 function renderOwnerProjects(projects) {
-    const container = $('#projects-container');
+    const container = $("#projects-container");
     container.empty();
 
     if (!projects || projects.length === 0) {
@@ -81,31 +117,35 @@ function renderOwnerProjects(projects) {
 
     // Reset container styling untuk horizontal layout
     container.css({
-        'display': 'inline-flex',
-        'gap': '1.5rem',
-        'padding': '0 1.25rem',
-        'min-width': 'min-content',
-        'white-space': 'nowrap'
+        display: "inline-flex",
+        gap: "1.5rem",
+        padding: "0 1.25rem",
+        "min-width": "min-content",
+        "white-space": "nowrap",
     });
 
-    projects.forEach(project => {
+    projects.forEach((project) => {
         // Buat list nama anggota
-        let memberNames = '';
-        let memberAvatars = '';
+        let memberNames = "";
+        let memberAvatars = "";
         if (project.users && project.users.length > 0) {
-            memberNames = project.users.map(u => u.name).join(', ');
+            memberNames = project.users.map((u) => u.name).join(", ");
 
             // Bubble Avatar Bagian Dashboard Owner
-                memberAvatars = project.users.map((u, idx) => `
-                <span class="member-avatar relative inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-normal text-white border-2 border-white ${idx > 0 ? '-ml-2' : ''} shadow cursor-pointer transition-transform hover:scale-110 hover:z-10"
+            memberAvatars = project.users
+                .map(
+                    (u, idx) => `
+                <span class="member-avatar relative inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-normal text-white border-2 border-white ${idx > 0 ? "-ml-2" : ""} shadow cursor-pointer transition-transform hover:scale-110 hover:z-10"
                 style="background: ${generateGradient()};">
                 ${getInitials(u.name)}
                 <span class="bubble-tooltip">
                     ${u.name}
                 </span>
             </span>
-        `).join('');
-    }
+        `,
+                )
+                .join("");
+        }
 
         const projectCard = `
             <div class="project-card bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0 w-[400px]">
@@ -121,40 +161,54 @@ function renderOwnerProjects(projects) {
                             </div>
                             <span class="bubble-tooltip">${project.nama_project}</span>
                         </div>
-                        
+
                         <!-- Right: Buttons -->
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <a href="/project/${project.idproject}" 
+                            <a href="/project/${project.idproject}"
                             class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
                                 <i class="ph-bold ph-arrow-square-out"></i>
                                 Buka Project
                             </a>
-                            <button class="project-menu-btn p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded flex-shrink-0" 
+                            <button class="project-menu-btn p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded flex-shrink-0"
                                     data-project-id="${project.idproject}">
                                 <i class="ph-bold ph-dots-three"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center gap-4 text-sm text-gray-600 mb-2 mt-3">
                         <span class="flex items-center gap-1">
                             <i class="ph-bold ph-calendar"></i>
                             Dibuat: ${formatDate(project.created_at)}
                         </span>
                     </div>
-                    
-                    ${memberNames ? `
+
+                    ${
+                        memberNames
+                            ? `
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex items-center">
                                 ${memberAvatars}
                             </div>
                         </div>
-                    ` : ''}
+                    `
+                            : ""
+                    }
                 </div>
 
                 <!-- Vertical Task Board -->
                 <div class="p-1">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Task Board</h4>
+
+                    <!-- Tombol buka modal Tambah Tugas -->
+                    <div class="mb-3">
+                        <button class="open-add-task-modal font-medium flex items-center gap-2 py-2 px-3 text-blue-500 rounded-md bg-white border border-blue-500 hover:bg-gray-100 shadow-sm"
+                                data-project-id="${project.idproject}"
+                                data-project-name="${project.nama_project}">
+                            Tambah Tugas
+                        </button>
+                    </div>
+
                     <div id="task-board-${project.idproject}" class="task-board-container">
                         <div class="text-center text-gray-500 py-8 p-2">
                             <i class="ph-bold ph-circle-notch animate-spin text-xl mb-2"></i>
@@ -168,24 +222,49 @@ function renderOwnerProjects(projects) {
 
         // load tasks for this project
         loadProjectTasks(project.idproject);
+
+        const addTaskButtonHtml = `
+            <div class="mb-3">
+                <button class="open-add-task-modal bg-green-600 hover:bg-green-500 text-white py-2 px-3 rounded text-sm font-medium"
+                        data-project-id="${project.idproject}"
+                        data-project-name="${project.nama_project}">
+                    Tambah Tugas
+                </button>
+            </div>
+        `;
+    });
+
+    $(document).on("click", ".add-task-btn", function () {
+        const projectId = $(this).data("project-id");
+        const input = $(`#add-task-input-${projectId}`);
+        const taskName = input.val();
+        if (!taskName || !taskName.trim()) {
+            alert("Nama tugas tidak boleh kosong");
+            return;
+        }
+
+        $(this).attr("disabled", true);
+        addTaskToProject(projectId, taskName);
+        input.val("");
+        $(this).removeAttr("disabled");
     });
 
     // Tambahkan event listener untuk menu project
-    $('.project-menu-btn').click(function() {
-        const projectId = $(this).data('project-id');
+    $(".project-menu-btn").click(function () {
+        const projectId = $(this).data("project-id");
         showProjectMenu(projectId, $(this));
     });
 
     // Initialize scroll handlers dan show controls jika diperlukan
     const updateScrollButtons = initScrollHandlers();
-    
+
     // Tampilkan scroll controls jika projects lebih dari 2
     if (projects.length > 2) {
-        $('#scroll-controls').removeClass('hidden');
+        $("#scroll-controls").removeClass("hidden");
         // Update button states setelah render
         setTimeout(updateScrollButtons, 100);
     } else {
-        $('#scroll-controls').addClass('hidden');
+        $("#scroll-controls").addClass("hidden");
     }
 }
 
@@ -195,11 +274,11 @@ function loadProjectTasks(projectId) {
         url: `${API_BASE_URL}/tasks?idproject=${projectId}`,
         type: "GET",
         headers: headers,
-        success: function(tasks) {
+        success: function (tasks) {
             updateTaskStatistics(projectId, tasks);
             renderVerticalTaskBoard(projectId, tasks);
         },
-        error: function(xhr) {
+        error: function (xhr) {
             console.error(`Gagal memuat tasks project ${projectId}:`, xhr);
             $(`#task-board-${projectId}`).html(`
                 <div class="text-center text-red-500 py-8">
@@ -207,15 +286,15 @@ function loadProjectTasks(projectId) {
                     <p>Gagal memuat tasks</p>
                 </div>
             `);
-        }
+        },
     });
 }
 
 // Update statistics
 function updateTaskStatistics(projectId, tasks) {
-    const todoCount = tasks.filter(task => task.status === '1').length;
-    const progressCount = tasks.filter(task => task.status === '2').length;
-    const completedCount = tasks.filter(task => task.status === '3').length;
+    const todoCount = tasks.filter((task) => task.status === "1").length;
+    const progressCount = tasks.filter((task) => task.status === "2").length;
+    const completedCount = tasks.filter((task) => task.status === "3").length;
 
     $(`#todo-count-${projectId}`).text(todoCount);
     $(`#progress-count-${projectId}`).text(progressCount);
@@ -226,31 +305,31 @@ function updateTaskStatistics(projectId, tasks) {
 function renderHorizontalTaskBoard(projectId, tasks) {
     // Kelompokkan task per status
     const statusMap = {
-        '1': { 
-            label: 'To Do', 
-            color: 'bg-blue-100 text-blue-800',
-            borderColor: 'border-blue-200',
-            icon: 'ph-list-checks',
-            tasks: []
+        1: {
+            label: "To Do",
+            color: "bg-blue-100 text-blue-800",
+            borderColor: "border-blue-200",
+            icon: "ph-list-checks",
+            tasks: [],
         },
-        '2': { 
-            label: 'In Progress', 
-            color: 'bg-yellow-100 text-yellow-800',
-            borderColor: 'border-yellow-200',
-            icon: 'ph-timer',
-            tasks: []
+        2: {
+            label: "In Progress",
+            color: "bg-yellow-100 text-yellow-800",
+            borderColor: "border-yellow-200",
+            icon: "ph-timer",
+            tasks: [],
         },
-        '3': { 
-            label: 'Done', 
-            color: 'bg-green-100 text-green-800',
-            borderColor: 'border-green-200',
-            icon: 'ph-check-circle',
-            tasks: []
-        }
+        3: {
+            label: "Done",
+            color: "bg-green-100 text-green-800",
+            borderColor: "border-green-200",
+            icon: "ph-check-circle",
+            tasks: [],
+        },
     };
 
     // Kelompokkan tasks
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
         if (statusMap[task.status]) {
             statusMap[task.status].tasks.push(task);
         }
@@ -261,7 +340,7 @@ function renderHorizontalTaskBoard(projectId, tasks) {
         <div class="task-board flex gap-2 overflow-x-auto pb-2">
     `;
 
-    Object.keys(statusMap).forEach(status => {
+    Object.keys(statusMap).forEach((status) => {
         const { tasks, color, borderColor, label, icon } = statusMap[status];
         const taskCount = tasks.length;
 
@@ -277,27 +356,35 @@ function renderHorizontalTaskBoard(projectId, tasks) {
         `;
 
         if (tasks.length > 0) {
-            tasks.forEach(task => {
+            tasks.forEach((task) => {
                 html += `
                     <div class="task-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
                          onclick="window.location.href='/project/${projectId}'">
                         <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
-                            ${task.nama_task || task.name || task.title }
+                            ${task.nama_task || task.name || task.title}
                         </h5>
-                        ${task.deskripsi ? `
+                        ${
+                            task.deskripsi
+                                ? `
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
-                        ` : ''}
+                        `
+                                : ""
+                        }
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
                                     ${memberAvatars}
                                 </div>
                             </div>
-                            ${task.updated_at ? `
+                            ${
+                                task.updated_at
+                                    ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                         </div>
                     </div>
                 `;
@@ -326,11 +413,11 @@ function renderHorizontalTaskBoard(projectId, tasks) {
 function generateGradient() {
     // Contoh: random gradient, bisa diganti sesuai kebutuhan
     const colors = [
-        ['#6EE7B7', '#3B82F6'],
-        ['#FDE68A', '#FCA5A5'],
-        ['#A5B4FC', '#F472B6'],
-        ['#F9A8D4', '#F87171'],
-        ['#FCD34D', '#34D399'],
+        ["#6EE7B7", "#3B82F6"],
+        ["#FDE68A", "#FCA5A5"],
+        ["#A5B4FC", "#F472B6"],
+        ["#F9A8D4", "#F87171"],
+        ["#FCD34D", "#34D399"],
     ];
     const idx = Math.floor(Math.random() * colors.length);
     return `linear-gradient(135deg, ${colors[idx][0]}, ${colors[idx][1]})`;
@@ -338,30 +425,30 @@ function generateGradient() {
 
 function renderVerticalTaskBoard(projectId, tasks) {
     const statusMap = {
-        '1': { 
-            label: 'To Do', 
-            color: 'bg-blue-100 text-blue-800',
-            borderColor: 'border-blue-200',
-            icon: 'ph-list-checks',
-            tasks: []
+        1: {
+            label: "To Do",
+            color: "bg-blue-100 text-blue-800",
+            borderColor: "border-blue-200",
+            icon: "ph-list-checks",
+            tasks: [],
         },
-        '2': { 
-            label: 'In Progress', 
-            color: 'bg-yellow-100 text-yellow-800',
-            borderColor: 'border-yellow-200',
-            icon: 'ph-timer',
-            tasks: []
+        2: {
+            label: "In Progress",
+            color: "bg-yellow-100 text-yellow-800",
+            borderColor: "border-yellow-200",
+            icon: "ph-timer",
+            tasks: [],
         },
-        '3': { 
-            label: 'Done', 
-            color: 'bg-green-100 text-green-800',
-            borderColor: 'border-green-200',
-            icon: 'ph-check-circle',
-            tasks: []
-        }
+        3: {
+            label: "Done",
+            color: "bg-green-100 text-green-800",
+            borderColor: "border-green-200",
+            icon: "ph-check-circle",
+            tasks: [],
+        },
     };
 
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
         if (statusMap[task.status]) {
             statusMap[task.status].tasks.push(task);
         }
@@ -369,7 +456,7 @@ function renderVerticalTaskBoard(projectId, tasks) {
 
     let html = `<div class="task-board flex flex-col gap-4">`;
 
-    Object.keys(statusMap).forEach(status => {
+    Object.keys(statusMap).forEach((status) => {
         const { tasks, color, borderColor, label, icon } = statusMap[status];
         const taskCount = tasks.length;
 
@@ -388,8 +475,8 @@ function renderVerticalTaskBoard(projectId, tasks) {
         `;
 
         if (tasks.length > 0) {
-            tasks.forEach(task => {
-                let userAvatar = '';
+            tasks.forEach((task) => {
+                let userAvatar = "";
                 if (task.user && task.user.name) {
                     const initials = getInitials(task.user.name);
                     userAvatar = `
@@ -400,12 +487,16 @@ function renderVerticalTaskBoard(projectId, tasks) {
                         <span class="text-xs text-gray-700">${task.user.name}</span>
                     `;
                 } else if (task.users && task.users.length > 0) {
-                    userAvatar = task.users.map(u => `
+                    userAvatar = task.users
+                        .map(
+                            (u) => `
                         <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1"
                              style="background: ${generateGradient()}" title="${u.name}">
                             ${getInitials(u.name)}
                         </div>
-                    `).join('');
+                    `,
+                        )
+                        .join("");
                 }
 
                 html += `
@@ -413,21 +504,29 @@ function renderVerticalTaskBoard(projectId, tasks) {
                          data-task-id="${task.idtask}">
                         <div class="flex-1">
                             <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
-                                ${task.nama_task || task.name || task.title || 'Task #' + task.idtask}
+                                ${task.nama_task || task.name || task.title || "Task #" + task.idtask}
                             </h5>
-                            ${task.deskripsi ? `
+                            ${
+                                task.deskripsi
+                                    ? `
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
                         </div>
                         <div class="flex flex-col items-end text-xs text-gray-400 ml-2">
-                            ${task.updated_at ? `
+                            ${
+                                task.updated_at
+                                    ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                         </div>
                     </div>
                 `;
@@ -459,36 +558,38 @@ function renderVerticalTaskBoard(projectId, tasks) {
 
 // Initialize drag & drop untuk tasks
 function initSortableTasks(projectId) {
-    $(`.sortable-task-list[data-project-id="${projectId}"]`).sortable({
-        connectWith: `.sortable-task-list[data-project-id="${projectId}"]`,
-        placeholder: "task-placeholder",
-        cursor: "move",
-        tolerance: "pointer",
-        helper: "clone",
-        opacity: 0.6,
-        receive: function(event, ui) {
-            const taskId = ui.item.data('task-id');
-            const newStatus = $(this).data('status');
-            const projectId = $(this).data('project-id');
-            
-            // Hapus empty placeholder jika ada
-            $(this).find('.empty-placeholder').remove();
-            
-            // Update status task via API
-            updateTaskStatus(taskId, newStatus, projectId);
-        },
-        remove: function(event, ui) {
-            // Jika kolom jadi kosong, tambahkan empty placeholder
-            if ($(this).children('.task-card').length === 0) {
-                $(this).html(`
+    $(`.sortable-task-list[data-project-id="${projectId}"]`)
+        .sortable({
+            connectWith: `.sortable-task-list[data-project-id="${projectId}"]`,
+            placeholder: "task-placeholder",
+            cursor: "move",
+            tolerance: "pointer",
+            helper: "clone",
+            opacity: 0.6,
+            receive: function (event, ui) {
+                const taskId = ui.item.data("task-id");
+                const newStatus = $(this).data("status");
+                const projectId = $(this).data("project-id");
+
+                // Hapus empty placeholder jika ada
+                $(this).find(".empty-placeholder").remove();
+
+                // Update status task via API
+                updateTaskStatus(taskId, newStatus, projectId);
+            },
+            remove: function (event, ui) {
+                // Jika kolom jadi kosong, tambahkan empty placeholder
+                if ($(this).children(".task-card").length === 0) {
+                    $(this).html(`
                     <div class="text-center py-8 text-gray-400 empty-placeholder">
                         <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
                         <p class="text-xs">Tidak ada task</p>
                     </div>
                 `);
-            }
-        }
-    }).disableSelection();
+                }
+            },
+        })
+        .disableSelection();
 }
 
 // Update status task via API
@@ -497,32 +598,34 @@ function updateTaskStatus(taskId, newStatus, projectId) {
         url: `${API_BASE_URL}/tasks/${taskId}`,
         type: "PUT",
         headers: headers,
-        data: JSON.stringify({ 
-            status: newStatus 
+        data: JSON.stringify({
+            status: newStatus,
         }),
-        success: function(response) {
-            console.log(`Task ${taskId} berhasil dipindahkan ke status ${newStatus}`);
-            
+        success: function (response) {
+            console.log(
+                `Task ${taskId} berhasil dipindahkan ke status ${newStatus}`,
+            );
+
             // Update counter badge
             loadProjectTasks(projectId);
         },
-        error: function(xhr) {
-            console.error('Gagal memindahkan task:', xhr);
-            alert('Gagal memindahkan task. Silakan coba lagi.');
-            
+        error: function (xhr) {
+            console.error("Gagal memindahkan task:", xhr);
+            alert("Gagal memindahkan task. Silakan coba lagi.");
+
             // Reload tasks untuk reset posisi
             loadProjectTasks(projectId);
-        }
+        },
     });
 }
 
 // Format date
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+    return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
     });
 }
 
@@ -531,20 +634,20 @@ function formatRelativeTime(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) return 'baru saja';
+
+    if (diffInSeconds < 60) return "baru saja";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}j`;
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}h`;
-    
+
     return formatDate(dateString);
 }
 
 // Project menu (edit/delete)
 function showProjectMenu(projectId, buttonElement) {
     // Hapus menu yang sudah ada
-    $('.project-menu').remove();
-    
+    $(".project-menu").remove();
+
     const menu = `
         <div class="project-menu absolute bg-white shadow-lg border border-gray-200 rounded-md py-1 z-10">
             <button class="edit-project w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
@@ -557,92 +660,99 @@ function showProjectMenu(projectId, buttonElement) {
             </button>
         </div>
     `;
-    
+
     $(buttonElement).after(menu);
-    const menuElement = $(buttonElement).next('.project-menu');
-    
+    const menuElement = $(buttonElement).next(".project-menu");
+
     // Position menu
     const rect = buttonElement[0].getBoundingClientRect();
     menuElement.css({
         top: rect.bottom + 5,
-        right: window.innerWidth - rect.right
+        right: window.innerWidth - rect.right,
     });
-    
+
     // Event listeners untuk menu
-    menuElement.find('.edit-project').click(function() {
+    menuElement.find(".edit-project").click(function () {
         editProject(projectId);
         menuElement.remove();
     });
-    
-    menuElement.find('.delete-project').click(function() {
+
+    menuElement.find(".delete-project").click(function () {
         deleteProject(projectId);
         menuElement.remove();
     });
-    
+
     // Close menu ketika klik di luar
-    $(document).on('click.project-menu', function(e) {
-        if (!$(e.target).closest('.project-menu, .project-menu-btn').length) {
-            $('.project-menu').remove();
-            $(document).off('click.project-menu');
+    $(document).on("click.project-menu", function (e) {
+        if (!$(e.target).closest(".project-menu, .project-menu-btn").length) {
+            $(".project-menu").remove();
+            $(document).off("click.project-menu");
         }
     });
 }
 
 function editProject(projectId) {
-    const projectName = $(`.project-card [data-project-id="${projectId}"]`).closest('.project-card')
-        .find('h3').text().trim();
-    
-    const newName = prompt('Edit nama project:', projectName);
-    if (newName && newName.trim() !== '' && newName !== projectName) {
+    const projectName = $(`.project-card [data-project-id="${projectId}"]`)
+        .closest(".project-card")
+        .find("h3")
+        .text()
+        .trim();
+
+    const newName = prompt("Edit nama project:", projectName);
+    if (newName && newName.trim() !== "" && newName !== projectName) {
         $.ajax({
             url: `${API_BASE_URL}/projects/${projectId}`,
             type: "PUT",
             headers: headers,
             data: JSON.stringify({ nama_project: newName.trim() }),
-            success: function(response) {
+            success: function (response) {
                 loadOwnerProjects(); // Reload projects
             },
-            error: function(xhr) {
-                alert('Gagal mengupdate project');
-            }
+            error: function (xhr) {
+                alert("Gagal mengupdate project");
+            },
         });
     }
 }
 
 function deleteProject(projectId) {
-    if (confirm('Apakah Anda yakin ingin menghapus project ini? Semua tugas yang terkait juga akan dihapus.')) {
+    if (
+        confirm(
+            "Apakah Anda yakin ingin menghapus project ini? Semua tugas yang terkait juga akan dihapus.",
+        )
+    ) {
         $.ajax({
             url: `${API_BASE_URL}/projects/${projectId}`,
             type: "DELETE",
             headers: headers,
-            success: function(response) {
+            success: function (response) {
                 loadOwnerProjects(); // Reload projects
             },
-            error: function(xhr) {
-                alert('Gagal menghapus project');
-            }
+            error: function (xhr) {
+                alert("Gagal menghapus project");
+            },
         });
     }
 }
 
 // Modal handlers
 function initModalHandlers() {
-    $('#open-modal-create').click(function() {
-        $('#modal-create-project').removeClass('hidden');
+    $("#open-modal-create").click(function () {
+        $("#modal-create-project").removeClass("hidden");
     });
 
-    $('#close-modal-create, #cancel-create').click(function() {
-        $('#modal-create-project').addClass('hidden');
-        $('#project-name').val('');
+    $("#close-modal-create, #cancel-create").click(function () {
+        $("#modal-create-project").addClass("hidden");
+        $("#project-name").val("");
     });
 
     // Create project form
-    $('#create-project-form').submit(function(e) {
+    $("#create-project-form").submit(function (e) {
         e.preventDefault();
-        
-        const projectName = $('#project-name').val().trim();
+
+        const projectName = $("#project-name").val().trim();
         if (!projectName) {
-            alert('Nama project tidak boleh kosong');
+            alert("Nama project tidak boleh kosong");
             return;
         }
 
@@ -651,18 +761,73 @@ function initModalHandlers() {
             type: "POST",
             headers: headers,
             data: JSON.stringify({ nama_project: projectName }),
-            success: function(response) {
-                $('#modal-create-project').addClass('hidden');
-                $('#project-name').val('');
+            success: function (response) {
+                $("#modal-create-project").addClass("hidden");
+                $("#project-name").val("");
                 loadOwnerProjects(); // Reload projects
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 console.error("Gagal membuat project:", xhr);
-                alert('Gagal membuat project');
-            }
+                alert("Gagal membuat project");
+            },
         });
     });
 }
+
+// Modal handlers untuk "Tambah Tugas"
+$(document).on("click", ".open-add-task-modal", function () {
+    const projectId = $(this).data("project-id");
+    const projectName =
+        $(this).data("project-name") ||
+        $(this).closest(".project-card").find("h3").text().trim();
+
+    $("#modal-add-task-project-id").val(projectId);
+    $("#modal-add-task-project-name").text(projectName);
+    $("#modal-add-task-name").val("");
+    $("#modal-add-task-desc").val("");
+
+    $("#modal-add-task").removeClass("hidden").addClass("flex");
+    $("#modal-add-task-name").focus();
+});
+
+$(document).on(
+    "click",
+    "#modal-add-task-close, #modal-add-task-cancel",
+    function () {
+        $("#modal-add-task").addClass("hidden").removeClass("flex");
+    },
+);
+
+// Safe handler untuk tombol Simpan Tugas (menghindari .trim() pada undefined)
+$(document).on("click", "#modal-add-task-save", function () {
+    const projectId = $("#modal-add-task-project-id").val();
+    const name = ($("#modal-add-task-name").val() || "").toString().trim();
+
+    if (!name) {
+        if (window.toastr) toastr.warning("Nama tugas tidak boleh kosong");
+        else alert("Nama tugas tidak boleh kosong");
+        $("#modal-add-task-name").focus();
+        return;
+    }
+
+    addTaskToProject(projectId, name)
+        .done(function (res) {
+            if (window.toastr)
+                toastr.success(
+                    (res && res.message) || "Tugas berhasil ditambahkan",
+                );
+            loadProjectTasks(projectId);
+            $("#modal-add-task").addClass("hidden").removeClass("flex");
+        })
+        .fail(function (xhr) {
+            const msg =
+                xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : "Gagal menambahkan task";
+            if (window.toastr) toastr.error(msg);
+            else alert(msg);
+        });
+});
 
 // Initialize the dashboard
 function initOwnerDashboard() {
@@ -672,46 +837,69 @@ function initOwnerDashboard() {
 }
 
 // Load dashboard ketika document ready
-$(document).ready(function() {
+$(document).ready(function () {
     initOwnerDashboard();
 });
 
 function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2);
 }
 
 // Scroll handlers dengan debounce
 function initScrollHandlers() {
-    const wrapper = $('.projects-wrapper');
-    const container = $('#projects-container');
-    const scrollLeftBtn = $('#scroll-left');
-    const scrollRightBtn = $('#scroll-right');
-    const controls = $('#scroll-controls');
+    const wrapper = $(".projects-wrapper");
+    const container = $("#projects-container");
+    const scrollLeftBtn = $("#scroll-left");
+    const scrollRightBtn = $("#scroll-right");
+    const controls = $("#scroll-controls");
 
     function updateScrollButtons() {
         const scrollLeft = wrapper.scrollLeft();
-        const maxScroll = Math.max(0, container.outerWidth(true) - wrapper.outerWidth());
-        
-        if (scrollLeftBtn.length) scrollLeftBtn.prop('disabled', scrollLeft <= 0);
-        if (scrollRightBtn.length) scrollRightBtn.prop('disabled', scrollLeft >= maxScroll - 5); // Tolerance
+        const maxScroll = Math.max(
+            0,
+            container.outerWidth(true) - wrapper.outerWidth(),
+        );
+
+        if (scrollLeftBtn.length)
+            scrollLeftBtn.prop("disabled", scrollLeft <= 0);
+        if (scrollRightBtn.length)
+            scrollRightBtn.prop("disabled", scrollLeft >= maxScroll - 5); // Tolerance
     }
 
     if (scrollLeftBtn.length) {
-        scrollLeftBtn.off('click').on('click', () => {
-            wrapper.animate({ scrollLeft: Math.max(0, wrapper.scrollLeft() - 400) }, 300);
+        scrollLeftBtn.off("click").on("click", () => {
+            wrapper.animate(
+                { scrollLeft: Math.max(0, wrapper.scrollLeft() - 400) },
+                300,
+            );
         });
     }
     if (scrollRightBtn.length) {
-        scrollRightBtn.off('click').on('click', () => {
-            const maxScroll = Math.max(0, container.outerWidth(true) - wrapper.outerWidth());
-            wrapper.animate({ scrollLeft: Math.min(maxScroll, wrapper.scrollLeft() + 400) }, 300);
+        scrollRightBtn.off("click").on("click", () => {
+            const maxScroll = Math.max(
+                0,
+                container.outerWidth(true) - wrapper.outerWidth(),
+            );
+            wrapper.animate(
+                { scrollLeft: Math.min(maxScroll, wrapper.scrollLeft() + 400) },
+                300,
+            );
         });
     }
 
     // Update button states on scroll
-    wrapper.off('scroll.initScroll').on('scroll.initScroll', updateScrollButtons);
+    wrapper
+        .off("scroll.initScroll")
+        .on("scroll.initScroll", updateScrollButtons);
     // Update on resize
-    $(window).off('resize.initScroll').on('resize.initScroll', updateScrollButtons);
+    $(window)
+        .off("resize.initScroll")
+        .on("resize.initScroll", updateScrollButtons);
 
     // initial update
     setTimeout(updateScrollButtons, 50);
