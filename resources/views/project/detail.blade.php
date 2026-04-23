@@ -162,12 +162,21 @@
 
                         <div class="text-left">
                             <label for="taskname" class="text-base font-semibold text-gray-900"
-                                id="modal-title">Tambah
-                                tugas baru</label>
+                                id="modal-title">Tambah tugas baru</label>
                             <div class="mt-2">
                                 <input type="text" id="taskname" name="taskname"
                                     class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
                                     placeholder="Nama tugas" aria-labelledby="taskname" autocomplete="off" />
+                            </div>
+                        </div>
+
+                        <div class="text-left mt-4">
+                            <label for="gdrive-link" class="text-base font-semibold text-gray-900"
+                                id="modal-title">Link Google Drive (Dokumentasi)</label>
+                            <div class="mt-2">
+                                <input type="url" id="gdrive-link" name="gdrive-link"
+                                    class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                                    placeholder="https://drive.google.com/..." aria-labelledby="gdrive-link" autocomplete="off" />
                             </div>
                         </div>
 
@@ -199,17 +208,18 @@
                                 <input type="text" id="taskname-edit" name="taskname-edit"
                                     class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
                                     placeholder="Nama tugas" aria-labelledby="taskname-edit" autocomplete="off" />
-                                    <!-- <div class="py-2 flex gap-3 mt-4">
-                                        <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
-                                            <p>+ Member</p>
-                                        </div>
-                                        <div class="border border-gray-300 rounded-md px-3 py-1 cursor-pointer">
-                                            <p>+ Label</p>
-                                        </div>
-                                    </div> -->
                             </div>
                         </div>
-                    </div>
+
+                        <div class="text-left mt-4">
+                            <label for="gdrive-link-edit" class="text-base font-semibold text-gray-900"
+                                id="modal-title">Link Google Drive (Dokumentasi)</label>
+                            <div class="mt-2">
+                                <input type="url" id="gdrive-link-edit" name="gdrive-link-edit"
+                                    class="block w-full px-4 py-2 border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                                    placeholder="https://drive.google.com/..." aria-labelledby="gdrive-link-edit" autocomplete="off" />
+                            </div>
+                        </div>
                     <div class="bg-gray-50 flex sm:flex-row-reverse mt-4">
                         <button id="simpan-btn" type="button"
                             class="inline-flex w-full justify-center bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto rounded-md">Simpan</button>

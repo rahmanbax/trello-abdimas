@@ -11,6 +11,9 @@ const headers = {
     "Content-Type": "application/json",
 };
 
+if (typeof fetchProjectUsers !== 'function') {
+    window.fetchProjectUsers = function() { console.log("fetchProjectUsers not implemented"); };
+}
 // Panggil fungsi ini saat modal "Bagikan Board" dibuka
 $("#invite-member-btn").click(function () {
     fetchProjectUsers();
@@ -64,6 +67,78 @@ const checkIfOrderChanged = (boardId, taskElement) => {
 
     return orderChanged;
 };
+// Ambil semua task di board setelah drop
+const updateOrderInBoard = (boardId) => {
+    const tasksInBoard = document.querySelectorAll(`#${boardId} .task`);
+    tasksInBoard.forEach((task, index) => {
+        const taskId = task.dataset.id;
+        const newOrder = index + 1;
+
+        $.ajax({
+            url: `${API_BASE_URL}/tasks/${taskId}`,
+            type: "PUT",
+            data: JSON.stringify({
+                order: newOrder,
+                idproject: task.dataset.projectId,
+            }),
+            contentType: "application/json",
+            headers: headers,
+            success: function () {
+                // console.log(`Task ${taskId} order updated to ${newOrder}`);
+            },
+            error: function (xhr, status, error) {
+                console.error(`Gagal update order task ${taskId}:`, error);
+            },
+        });
+    });
+};
+
+const insertAboveTask = (zone, mouseY) => {
+    const els = zone.querySelectorAll(".task:not(.is-dragging)");
+
+    let closestTask = null;
+    let closestOffset = Number.POSITIVE_INFINITY;
+
+    els.forEach((task) => {
+        const { top, bottom, height } = task.getBoundingClientRect();
+
+        // Calculate the middle point of the task
+        const taskMiddle = top + height / 2;
+
+        // If mouse is in the upper half of a task, insert above it
+        // If mouse is in the lower half, insert below it (return next task or null)
+        if (mouseY < taskMiddle) {
+            // Mouse is in upper half - insert above this task
+            const offset = Math.abs(mouseY - top);
+            if (offset < closestOffset) {
+                closestOffset = offset;
+                closestTask = task;
+            }
+        } else {
+            // Mouse is in lower half - insert below this task (after this task)
+            const offset = Math.abs(mouseY - bottom);
+            if (offset < closestOffset) {
+                closestOffset = offset;
+                closestTask = task.nextElementSibling;
+            }
+        }
+    });
+
+    return closestTask;
+};
+
+// Fungsi untuk escape HTML entities
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
 
 document.addEventListener("DOMContentLoaded", async function () {
     try {
@@ -76,9 +151,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             alert(errorData.message || "Akses ditolak.");
             window.location.href = "/project"; // Redirect ke halaman daftar project
             return; // Stop eksekusi selanjutnya
-        }
+        }    
 
-        const taskData = await taskResponse.json();
+        const taskData = await taskResponse.json();        
 
         // console.log("Data tugas:", taskData); // Debugging data tugas
 
@@ -94,38 +169,42 @@ document.addEventListener("DOMContentLoaded", async function () {
                 taskDiv.dataset.id = task.idtask;
                 taskDiv.dataset.projectId = task.idproject;
 
-                let userAvatars = '';
-                if (Array.isArray(task.users)) {
-                    userAvatars = task.users.map(u => `
-                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold text-white border-2 border-white mr-2"
-                              style="background: ${generateGradient()};"
-                              title="${u.name} (${u.email})">
-                            ${getInitials(u.name)}
-                        </span>
-                    `).join('');
-                }
                 taskDiv.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1">
-                        ${userAvatars}
-                        <h5 class="text-lg font-medium text-black">${task.nama_task}</h5>
+                    <div class="flex items-center gap-2 mb-2">
+                        <h5 class="text-lg font-medium text-black">${escapeHtml(task.nama_task)}</h5>
                     </div>
+                    <input type="hidden" class="gdrive-link-hidden" value="${escapeHtml(task.gdrive_link || '')}">
                 `;
 
                 const editDeleteDiv = document.createElement("div");
                 editDeleteDiv.classList.add("edit-delete");
+                
+                const actionsDiv = document.createElement("div");
+                actionsDiv.classList.add("flex", "items-center", "gap-1", "flex-shrink-0", "mt-2");
+                if (task.gdrive_link) {
+                    const linkButton = document.createElement("a");
+                    linkButton.href = escapeHtml(task.gdrive_link);
+                    linkButton.target = "_blank";
+                    linkButton.rel = "noopener noreferrer";
+                    linkButton.draggable = "false";
+                    linkButton.className = "inline-flex items-center justify-center text-sm text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors z-10";
+                    linkButton.title = "Buka Dokumentasi";
+                    linkButton.innerHTML = '<i class="ph-bold ph-link"></i>';
+                    actionsDiv.appendChild(linkButton);
+                }
 
                 const editButton = document.createElement("button");
-                editButton.classList.add("edit-btn", "btn");
+                editButton.className = "edit-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 transition-colors";
                 editButton.innerHTML =
                     '<i class="ph-bold ph-pencil-simple"></i>';
+                actionsDiv.appendChild(editButton);
 
                 const deleteButton = document.createElement("button");
-                deleteButton.classList.add("delete-btn", "btn");
+                deleteButton.className = "delete-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-red-100 transition-colors";
                 deleteButton.innerHTML = '<i class="ph-bold ph-trash"></i>';
 
-                editDeleteDiv.appendChild(editButton);
-                editDeleteDiv.appendChild(deleteButton);
-                taskDiv.appendChild(editDeleteDiv);
+                actionsDiv.appendChild(deleteButton);
+                taskDiv.appendChild(actionsDiv);
 
                 taskDiv.addEventListener("dragstart", (e) => {
                     taskDiv.classList.add("is-dragging");
@@ -251,31 +330,6 @@ draggables.forEach((task) => {
     });
 });
 
-// Ambil semua task di board setelah drop
-const updateOrderInBoard = (boardId) => {
-    const tasksInBoard = document.querySelectorAll(`#${boardId} .task`);
-    tasksInBoard.forEach((task, index) => {
-        const taskId = task.dataset.id;
-        const newOrder = index + 1;
-
-        $.ajax({
-            url: `${API_BASE_URL}/tasks/${taskId}`,
-            type: "PUT",
-            data: JSON.stringify({
-                order: newOrder,
-                idproject: task.dataset.projectId,
-            }),
-            contentType: "application/json",
-            headers: headers,
-            success: function () {
-                // console.log(`Task ${taskId} order updated to ${newOrder}`);
-            },
-            error: function (xhr, status, error) {
-                console.error(`Gagal update order task ${taskId}:`, error);
-            },
-        });
-    });
-};
 
 droppables.forEach((zone) => {
     zone.addEventListener("dragover", (e) => {
@@ -368,40 +422,6 @@ droppables.forEach((zone) => {
     });
 });
 
-const insertAboveTask = (zone, mouseY) => {
-    const els = zone.querySelectorAll(".task:not(.is-dragging)");
-
-    let closestTask = null;
-    let closestOffset = Number.POSITIVE_INFINITY;
-
-    els.forEach((task) => {
-        const { top, bottom, height } = task.getBoundingClientRect();
-
-        // Calculate the middle point of the task
-        const taskMiddle = top + height / 2;
-
-        // If mouse is in the upper half of a task, insert above it
-        // If mouse is in the lower half, insert below it (return next task or null)
-        if (mouseY < taskMiddle) {
-            // Mouse is in upper half - insert above this task
-            const offset = Math.abs(mouseY - top);
-            if (offset < closestOffset) {
-                closestOffset = offset;
-                closestTask = task;
-            }
-        } else {
-            // Mouse is in lower half - insert below this task (after this task)
-            const offset = Math.abs(mouseY - bottom);
-            if (offset < closestOffset) {
-                closestOffset = offset;
-                closestTask = task.nextElementSibling;
-            }
-        }
-    });
-
-    return closestTask;
-};
-
 // function to edit and delete task
 
 // Menambahkan event listener untuk tombol delete
@@ -417,9 +437,11 @@ $(document).on("click", ".edit-btn", function () {
     const taskId = $(this).closest(".task").data("id"); // Ambil task ID
     const taskName = $(this).closest(".task").text().trim(); // Ambil nama task
     const status = $(this).closest(".task").data("status");
+    const gdriveLink = $(this).closest(".task").find(".gdrive-link-hidden").val() || '';
 
     // Isi modal edit dengan nama tugas yang dipilih
     $("#taskname-edit").val(taskName);
+    $("#gdrive-link-edit").val(gdriveLink);
 
     // Simpan ID tugas yang akan diupdate
     $("#modal-edit").data("id", taskId);
@@ -432,6 +454,8 @@ $(document).on("click", ".edit-btn", function () {
 
 // Menutup modal edit ketika tombol "Batal" diklik
 $("#close-modal-edit").click(function () {
+    $("#taskname-edit").val("");
+    $("#gdrive-link-edit").val("");
     $("#modal-edit").addClass("hidden");
 });
 
@@ -439,21 +463,23 @@ $("#close-modal-edit").click(function () {
 $("#simpan-btn").click(function () {
     const taskId = $("#modal-edit").data("id"); // Ambil ID tugas dari modal
     const taskName = $("#taskname-edit").val().trim(); // Ambil nama tugas dari input field
+    const gdriveLink = $("#gdrive-link-edit").val().trim(); // Ambil gdrive link dari input field
 
     // Cek jika nama tugas tidak kosong
     if (taskName) {
         // Panggil fungsi untuk memperbarui tugas
-        updateTask(taskId, taskName, projectId);
+        updateTask(taskId, taskName, projectId, gdriveLink);
     } else {
         alert("Nama tugas tidak boleh kosong");
     }
 });
 
 // Fungsi untuk memperbarui tugas
-function updateTask(taskId, taskName, projectId) {
+function updateTask(taskId, taskName, projectId, gdriveLink = null) {
     const data = {
         nama_task: taskName,
         idproject: projectId, // Ambil ID proyek dari modal
+        gdrive_link: gdriveLink,
     };
 
     $.ajax({
@@ -736,29 +762,34 @@ function deleteProject(projectId) {
 
 // Menambahkan event listener untuk tombol "Tambah Tugas"
 $("#add-task-btn").click(function () {
+    $("#taskname").val("");
+    $("#gdrive-link").val("");
     $("#modal").removeClass("hidden");
 });
 
 // Menutup modal ketika tombol "Batal" diklik
 $("#close-modal-btn").click(function () {
+    $("#taskname").val("");
+    $("#gdrive-link").val("");
     $("#modal").addClass("hidden");
 });
 
 $("#tambah-btn").click(function () {
     // Ambil nama tugas dari input
     const taskName = $("#taskname").val().trim();
+    const gdriveLink = $("#gdrive-link").val().trim();
 
     // Cek jika nama tugas tidak kosong
     if (taskName) {
         // Panggil fungsi untuk menambahkan tugas baru
-        addNewTask(taskName, projectId);
+        addNewTask(taskName, projectId, gdriveLink);
     } else {
         alert("Nama tugas tidak boleh kosong");
     }
 });
 
 // Fungsi untuk menambahkan tugas baru
-function addNewTask(taskName, projectId) {
+function addNewTask(taskName, projectId, gdriveLink = null) {
     const tasksInTodo = document.querySelectorAll(`#todo .task`);
     const lastOrder = tasksInTodo.length; // index terakhir
 
@@ -766,6 +797,7 @@ function addNewTask(taskName, projectId) {
         nama_task: taskName,
         idproject: projectId,
         order: lastOrder + 1,
+        gdrive_link: gdriveLink,
     };
 
     $.ajax({
@@ -777,6 +809,7 @@ function addNewTask(taskName, projectId) {
             // console.log("Task berhasil ditambahkan:", response);
             $("#modal").addClass("hidden");
             $("#taskname").val("");
+            $("#gdrive-link").val("");
             location.reload();
         },
         error: function (xhr, status, error) {
@@ -877,7 +910,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-    fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
+fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
     // ← koma di sini, bukan di luar
     method: "GET",
     headers: {

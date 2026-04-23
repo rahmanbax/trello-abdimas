@@ -255,3 +255,16 @@
 .flex.justify-between [title]:hover {
     pointer-events: auto;
 }
+/* Pastikan link dan tombol di dalam task bisa diklik */
+.task .link-icon,
+.task .edit-btn,
+.task .delete-btn {
+    pointer-events: auto;
+    position: relative;
+    z-index: 20;
+}
+
+/* Opsional: agar teks tidak ikut terseleksi saat drag */
+.task {
+    user-select: none;
+}

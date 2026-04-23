@@ -369,9 +369,17 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
-                        `
-                                : ""
-                        }
+                        ` : ''}
+                        ${task.gdrive_link ? `
+                        <div class="mt-2 mb-2">
+                            <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                               class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
+                               onclick="event.stopPropagation()">
+                                <i class="ph-bold ph-link"></i>
+                                <span>Dokumentasi</span>
+                            </a>
+                        </div>
+                        ` : ''}
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
@@ -512,9 +520,17 @@ function renderVerticalTaskBoard(projectId, tasks) {
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
-                            `
-                                    : ""
-                            }
+                            ` : ''}
+                            ${task.gdrive_link ? `
+                            <div class="mt-2 mb-2">
+                                <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
+                                   onclick="event.stopPropagation()">
+                                    <i class="ph-bold ph-link"></i>
+                                    <span>Dokumentasi</span>
+                                </a>
+                            </div>
+                            ` : ''}
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
