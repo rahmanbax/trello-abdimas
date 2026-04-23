@@ -8,17 +8,21 @@
     "src": "public/fonts/Satoshi-Medium.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CLHTcFbl.css",
+    "file": "assets/app-BNhIuSWu.css",
     "src": "resources/css/app.css",
     "isEntry": true,
+    "name": "app",
     "names": [
       "app.css"
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-Bj43h_rG.js",
+    "file": "assets/app-Cq4-dsgR.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "css": [
+      "assets/app-E54ViR41.css"
+    ]
   }
 }

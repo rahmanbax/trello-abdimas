@@ -41,10 +41,10 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_task' => 'required|string|max:255',
-            'order' => 'required|integer',
-            'idproject' => 'required|exists:projects,idproject',
-            'gdrive_link' => 'nullable|string|url',
+            "nama_task" => "required|string|max:255",
+            "order" => "sometimes|integer",
+            "idproject" => "required|exists:projects,idproject",
+            "gdrive_link" => "nullable|string|url",
         ]);
 
         // Jika order tidak dikirim, set otomatis ke max(order) + 1 untuk project ini
@@ -99,11 +99,11 @@ class TaskController extends Controller
 
             // Validasi input
             $validated = $request->validate([
-                'status' => 'sometimes|required|in:1,2,3',
-                'nama_task' => 'sometimes|required|string|max:255',
-                'deskripsi' => 'sometimes|nullable|string',
-                'order' => 'sometimes|integer',
-                'gdrive_link' => 'sometimes|nullable|string|url',
+                "status" => "sometimes|required|in:1,2,3",
+                "nama_task" => "sometimes|required|string|max:255",
+                "deskripsi" => "sometimes|nullable|string",
+                "order" => "sometimes|integer",
+                "gdrive_link" => "sometimes|nullable|string|url",
             ]);
 
             // Update task
