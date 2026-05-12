@@ -33,12 +33,29 @@
                 <button id="open-modal-create" class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md">
                     <i class="ph-bold ph-plus"></i>Tambah Project
                 </button>
-                <!--<button id="open-modal-create" class="font-medium flex items-center gap-2 py-2 px-3 text-blue-500 rounded-md bg-white border border-blue-500 hover:bg-gray-100 shadow-sm">
-                    <i class="ph-bold ph-plus"></i>Tambah Tugas
-                </button>-->
+                <button id="global-add-task-btn" class="font-medium flex items-center gap-2 py-2 px-3 text-blue-500 rounded-md bg-white border border-blue-500 hover:bg-gray-100 shadow-sm">
+                    <i class="ph-bold ph-plus"></i> Tambah Tugas
+                </button>
             </div>
         </div>
+            <div class="mb-5">
+                <div class="bg-transparent">
+                    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-900">Task List</h3>
+                        <span class="text-xs text-gray-500">Drag task ke board project untuk assign</span>
+                    </div>
 
+                    <div id="unassigned-task-list"
+                        class="task-list sortable-task-list p-3 min-h-20 flex gap-3 overflow-x-auto overflow-y-hidden whitespace-nowrap"
+                        data-status="1"
+                        data-project-id="">
+                        <div class="w-full text-center py-6 text-gray-400">
+                            <i class="ph-bold ph-circle-notch animate-spin text-xl mb-2"></i>
+                            <p>Memuat task list...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <div class="projects-wrapper">
             <div id="projects-container">
                 <div class="text-center py-10 text-gray-500">
@@ -85,7 +102,7 @@
             <button id="modal-add-task-close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
             <h2 class="text-2xl font-semibold mb-4">Tambah Tugas</h2>
 
-            <input type="hidden" id="modal-add-task-project-id" value="" />
+            <!-- <input type="hidden" id="modal-add-task-project-id" value="" /> -->
 
             <div class="mb-4">
                 <label for="modal-add-task-name" class="block text-sm font-medium mb-2">Nama Tugas</label>

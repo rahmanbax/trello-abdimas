@@ -17,14 +17,14 @@ Route::get("/register", function () {
 });
 
 # Dashboard Lama
-Route::fallback(function () {
-    return redirect("/project");
-});
+// Route::fallback(function () {
+//     return redirect("/project");
+// });
 
 # Dashboard Baru
-// Route::fallback(function () {
-//     return redirect("/my-projects");
-// });
+Route::fallback(function () {
+    return redirect("/my-projects");
+});
 
 // Route yang butuh JWT
 Route::middleware([CheckJwtToken::class])->group(function () {

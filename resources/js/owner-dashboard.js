@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://trelloapp.id/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://trelloapp.id/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token");
 const headers = {
@@ -369,17 +369,23 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
-                        ` : ''}
-                        ${task.gdrive_link ? `
+                        `
+                                : ""
+                        }
+                        ${
+                            task.gdrive_link
+                                ? `
                         <div class="mt-2 mb-2">
-                            <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                            <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
                                onclick="event.stopPropagation()">
                                 <i class="ph-bold ph-link"></i>
                                 <span>Dokumentasi</span>
                             </a>
                         </div>
-                        ` : ''}
+                        `
+                                : ""
+                        }
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
@@ -520,17 +526,23 @@ function renderVerticalTaskBoard(projectId, tasks) {
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
-                            ` : ''}
-                            ${task.gdrive_link ? `
+                            `
+                                    : ""
+                            }
+                            ${
+                                task.gdrive_link
+                                    ? `
                             <div class="mt-2 mb-2">
-                                <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                                <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
                                    onclick="event.stopPropagation()">
                                     <i class="ph-bold ph-link"></i>
                                     <span>Dokumentasi</span>
                                 </a>
                             </div>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
@@ -583,25 +595,96 @@ function initSortableTasks(projectId) {
             helper: "clone",
             opacity: 0.6,
             receive: function (event, ui) {
-                const taskId = ui.item.data("task-id");
+                const $item = $(ui.item);
                 const newStatus = $(this).data("status");
-                const projectId = $(this).data("project-id");
+                const destProjectId = $(this).data("project-id");
 
                 // Hapus empty placeholder jika ada
                 $(this).find(".empty-placeholder").remove();
 
-                // Update status task via API
-                updateTaskStatus(taskId, newStatus, projectId);
+                // Cek apakah item ini adalah temporary floating task (dibuat via createFloatingTaskElement)
+                const isTemp =
+                    $item.attr("data-temp") === "1" ||
+                    $item.data("temp") === 1 ||
+                    $item.attr("data-task-name") !== undefined;
+
+                if (isTemp) {
+                    // Ambil nama task dari attribute/data atau dari teks
+                    const taskName =
+                        $item.attr("data-task-name") ||
+                        $item.data("task-name") ||
+                        $item.find("h5").first().text().trim();
+
+                    // Siapkan payload untuk disimpan ke backend
+                    const payload = {
+                        nama_task: taskName,
+                        idproject: destProjectId,
+                        status: newStatus || 1,
+                    };
+
+                    // Inform user (opsional)
+                    if (window.toastr) toastr.info("Menyimpan task...");
+
+                    // Buat task di server
+                    $.ajax({
+                        url: `${API_BASE_URL}/tasks`,
+                        type: "POST",
+                        headers: headers,
+                        contentType: "application/json",
+                        data: JSON.stringify(payload),
+                        success: function (res) {
+                            // Ambil id dari response (sesuaikan struktur response API)
+                            const created = res.task || res.data || res;
+                            const realId =
+                                created.idtask ||
+                                created.id ||
+                                (created.task &&
+                                    (created.task.idtask || created.task.id));
+
+                            // Set attribute sehingga elemen sekarang menjadi task nyata
+                            if (realId) {
+                                $item.attr("data-task-id", realId);
+                            }
+                            $item.removeAttr("data-temp");
+                            $item.removeAttr("data-task-name");
+                            $item.data("temp", false);
+
+                            if (window.toastr)
+                                toastr.success("Tugas berhasil dibuat");
+                            // Reload tasks untuk sync (opsional, tapi memastikan konsistensi)
+                            loadProjectTasks(destProjectId);
+                        },
+                        error: function (xhr) {
+                            console.error("Gagal menyimpan task:", xhr);
+                            if (window.toastr)
+                                toastr.error("Gagal menyimpan task");
+                            // Hapus item temp dari DOM jika gagal
+                            $item.remove();
+                        },
+                    });
+                } else {
+                    // Bukan temporary -> item asli dipindah antar kolom, lakukan update status biasa
+                    const taskId = $item.data("task-id");
+
+                    // Jika taskId tidak ada, abort
+                    if (!taskId) {
+                        console.warn("Task moved but no taskId found:", $item);
+                        return;
+                    }
+
+                    // Panggil fungsi update status (fungsi ini sudah ada di file)
+                    updateTaskStatus(taskId, newStatus, destProjectId);
+                }
             },
             remove: function (event, ui) {
                 // Jika kolom jadi kosong, tambahkan empty placeholder
                 if ($(this).children(".task-card").length === 0) {
                     $(this).html(`
-                    <div class="text-center py-8 text-gray-400 empty-placeholder">
-                        <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
-                        <p class="text-xs">Tidak ada task</p>
-                    </div>
-                `);
+                        <div class="text-center py-8 text-gray-400 empty-placeholder">
+                            <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
+                            <p class="text-xs">Tidak ada task</p>
+                        </div>
+                    `);
                 }
             },
         })
@@ -922,3 +1005,96 @@ function initScrollHandlers() {
 
     return updateScrollButtons;
 }
+
+// Function Floating Element
+
+// Membuat elemen task sementara yang bisa di-drag ke sortable lists
+function createFloatingTaskElement(taskName) {
+    // buat element DOM (tidak disimpan ke DB dulu)
+    const $el = $(`
+        <div class="floating-task task-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 cursor-move"
+             data-temp="1" data-task-name="${$("<div>").text(taskName).html()}">
+            <div class="flex-1">
+                <h5 class="text-sm font-medium text-gray-800 mb-1">${taskName}</h5>
+            </div>
+        </div>
+    `);
+
+    // posisikan di tengah viewport atau di dekat tombol
+    $el.css({
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 99999,
+    });
+
+    // tambahkan ke body
+    $("body").append($el);
+
+    // Jadikan draggable dan connect ke sortable lists
+    $el.draggable({
+        helper: "clone",
+        connectToSortable: ".sortable-task-list",
+        revert: "invalid",
+        appendTo: "body",
+        zIndex: 100000,
+        start: function (e, ui) {
+            // kalau mau styling pada helper
+            ui.helper.css({ width: Math.min(320, $(window).width() * 0.9) });
+        },
+        stop: function (e, ui) {
+            // jika tidak di-drop ke sortable, hapus elemen yang asli (floating)
+            // (ui.item is set only if dropped into sortable)
+            setTimeout(function () {
+                if ($el && $el.parent().length) {
+                    // remove floating element (original)
+                    $el.remove();
+                }
+            }, 50);
+        },
+    });
+
+    return $el;
+}
+
+// Handler tombol global: minta nama tugas lewat SweetAlert2 (atau prompt)
+$(document).on("click", "#global-add-task-btn", function () {
+    // prefer SweetAlert2 if available
+    if (window.Swal) {
+        Swal.fire({
+            title: "Buat Tugas Baru (seret ke project)",
+            input: "text",
+            inputPlaceholder: "Nama tugas",
+            showCancelButton: true,
+            confirmButtonText: "Buat & Seret",
+            preConfirm: (val) => {
+                if (!val || !val.trim()) {
+                    Swal.showValidationMessage("Nama tugas tidak boleh kosong");
+                }
+                return val;
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const name = result.value.trim();
+                const $floating = createFloatingTaskElement(name);
+                // otomatis mulai drag: trigger mousedown pada elemen untuk UX (sedikit hacky)
+                // pengguna boleh klik & drag manual juga
+                // Fokus: beri petunjuk bahwa item bisa di-drag
+                if (window.toastr)
+                    toastr.info(
+                        "Seret task ke project yang diinginkan untuk menyimpan",
+                    );
+            }
+        });
+    } else {
+        const name = prompt("Nama tugas:");
+        if (name && name.trim()) {
+            createFloatingTaskElement(name.trim());
+            if (window.toastr)
+                toastr.info(
+                    "Seret task ke project yang diinginkan untuk menyimpan",
+                );
+        }
+    }
+});

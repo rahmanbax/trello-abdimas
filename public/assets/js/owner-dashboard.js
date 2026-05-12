@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://trelloapp.id/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://trelloapp.id/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token");
 const headers = {
@@ -63,40 +63,153 @@ function initSearch() {
     $input.off("input.search").on("input.search", handleSearch);
 }
 
-// Func Add to Task
+function escapeHtml(text) {
+    const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+    };
+    return String(text || "").replace(/[&<>"']/g, function (m) {
+        return map[m];
+    });
+}
+
+// function populateTaskProjectOptions(selectedProjectId = "") {
+//     const $select = $("#modal-add-task-project-id");
+//     if (!$select.length) return;
+
+//     const selectedId = String(selectedProjectId || "");
+//     const options = ['<option value="">Pilih project</option>'];
+
+//     (projectsCache || []).forEach(function (project) {
+//         const id = String(project.idproject || "");
+//         const name = escapeHtml(project.nama_project || "Project #" + id);
+//         const selectedAttr = id === selectedId ? " selected" : "";
+//         options.push(
+//             '<option value="' +
+//                 id +
+//                 '"' +
+//                 selectedAttr +
+//                 ">" +
+//                 name +
+//                 "</option>",
+//         );
+//     });
+
+//     $select.html(options.join(""));
+// }
+
+function normalizeNullableProjectId(value) {
+    if (value === undefined || value === null) return null;
+    var normalized = String(value).trim();
+    return normalized === "" ? null : normalized;
+}
+
 function addTaskToProject(projectId, taskName) {
-    if (!taskName || !(taskName + "").trim()) {
-        if (window.toastr) toastr.warning("Nama tugas tidak boleh kosong");
-        else alert("Nama tugas tidak boleh kosong");
-        return;
+    var normalizedTaskName = String(taskName || "").trim();
+
+    if (!normalizedTaskName) {
+        return $.Deferred()
+            .reject({
+                responseJSON: { message: "Nama tugas tidak boleh kosong" },
+            })
+            .promise();
     }
 
-    const payload = {
-        nama_task: (taskName + "").trim(),
-        idproject: projectId,
+    var payload = {
+        nama_task: normalizedTaskName,
+        status: "1",
+        idproject: normalizeNullableProjectId(projectId),
     };
 
-    $.ajax({
-        url: `${API_BASE_URL}/tasks`,
+    return $.ajax({
+        url: API_BASE_URL + "/tasks",
         type: "POST",
         headers: headers,
         contentType: "application/json",
         data: JSON.stringify(payload),
-        success: function (res) {
-            if (window.toastr)
-                toastr.success(res.message || "Tugas berhasil ditambahkan");
-            loadProjectTasks(projectId);
+    });
+}
+
+function loadUnassignedTasks() {
+    $.ajax({
+        url: API_BASE_URL + "/tasks?unassigned=1",
+        type: "GET",
+        headers: headers,
+        success: function (tasks) {
+            renderUnassignedTasks(tasks || []);
+            initSortableTasks();
         },
         error: function (xhr) {
-            console.error("Gagal menambahkan task:", xhr);
-            const msg =
-                xhr.responseJSON && xhr.responseJSON.message
-                    ? xhr.responseJSON.message
-                    : "Gagal menambahkan task";
-            if (window.toastr) toastr.error(msg);
-            else alert(msg);
+            console.error("Gagal memuat task pool:", xhr);
+            $("#unassigned-task-list").html(
+                '<div class="text-center py-6 text-red-500">' +
+                    '<i class="ph-bold ph-warning-circle text-xl mb-2"></i>' +
+                    "<p>Gagal memuat task pool</p>" +
+                    "</div>",
+            );
         },
     });
+}
+
+function renderUnassignedTasks(tasks) {
+    var $list = $("#unassigned-task-list");
+    if (!$list.length) return;
+
+    if (!tasks.length) {
+        $list.html(
+            '<div class="w-full text-center py-8 text-gray-400 empty-placeholder">' +
+                '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
+                '<p class="text-xs">Belum ada task</p>' +
+                "</div>",
+        );
+        return;
+    }
+
+    var html = "";
+
+    tasks.forEach(function (task) {
+        var rawTaskName =
+            task.nama_task || task.name || task.title || "Task #" + task.idtask;
+        var taskName = escapeHtml(rawTaskName);
+
+        html +=
+            '<div class="task-card bg-white border border-gray-200 rounded-lg shadow-sm p-3 hover:shadow-md transition-shadow cursor-move flex items-start flex-shrink-0" style="width: 260px; min-width: 260px;" data-task-id="' +
+            task.idtask +
+            '">';
+
+        html += '<div class="flex-1 min-w-0">';
+        html +=
+            '<h5 class="text-sm font-medium text-gray-800 mb-1 truncate" title="' +
+            taskName +
+            '">' +
+            taskName +
+            "</h5>";
+
+        if (task.gdrive_link) {
+            html += '<div class="mt-1">';
+            html +=
+                '<a href="' +
+                task.gdrive_link +
+                '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50" onclick="event.stopPropagation()">';
+            html +=
+                '<i class="ph-bold ph-link"></i><span>Dokumentasi</span></a></div>';
+        }
+
+        html += "</div>";
+
+        html += '<div class="text-xs text-gray-400 ml-2 flex-shrink-0">';
+        html += task.updated_at
+            ? "<span>" + formatRelativeTime(task.updated_at) + "</span>"
+            : "";
+        html += "</div>";
+
+        html += "</div>";
+    });
+
+    $list.html(html);
 }
 
 // Render projects milik owner dengan tampilan horizontal task board
@@ -119,7 +232,7 @@ function renderOwnerProjects(projects) {
     container.css({
         display: "inline-flex",
         gap: "1.5rem",
-        padding: "0 1.25rem",
+        padding: "0",
         "min-width": "min-content",
         "white-space": "nowrap",
     });
@@ -199,15 +312,6 @@ function renderOwnerProjects(projects) {
                 <!-- Vertical Task Board -->
                 <div class="p-1">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Task Board</h4>
-
-                    <!-- Tombol buka modal Tambah Tugas -->
-                    <div class="mb-3">
-                        <button class="open-add-task-modal font-medium flex items-center gap-2 py-2 px-3 text-blue-500 rounded-md bg-white border border-blue-500 hover:bg-gray-100 shadow-sm"
-                                data-project-id="${project.idproject}"
-                                data-project-name="${project.nama_project}">
-                            Tambah Tugas
-                        </button>
-                    </div>
 
                     <div id="task-board-${project.idproject}" class="task-board-container">
                         <div class="text-center text-gray-500 py-8 p-2">
@@ -369,17 +473,23 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
-                        ` : ''}
-                        ${task.gdrive_link ? `
+                        `
+                                : ""
+                        }
+                        ${
+                            task.gdrive_link
+                                ? `
                         <div class="mt-2 mb-2">
-                            <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                            <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
                                onclick="event.stopPropagation()">
                                 <i class="ph-bold ph-link"></i>
                                 <span>Dokumentasi</span>
                             </a>
                         </div>
-                        ` : ''}
+                        `
+                                : ""
+                        }
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
@@ -520,17 +630,23 @@ function renderVerticalTaskBoard(projectId, tasks) {
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
-                            ` : ''}
-                            ${task.gdrive_link ? `
+                            `
+                                    : ""
+                            }
+                            ${
+                                task.gdrive_link
+                                    ? `
                             <div class="mt-2 mb-2">
-                                <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer" 
+                                <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
                                    onclick="event.stopPropagation()">
                                     <i class="ph-bold ph-link"></i>
                                     <span>Dokumentasi</span>
                                 </a>
                             </div>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
@@ -571,66 +687,87 @@ function renderVerticalTaskBoard(projectId, tasks) {
 }
 
 // Fungsi baru untuk Drag & Drop tasks
-
 // Initialize drag & drop untuk tasks
-function initSortableTasks(projectId) {
-    $(`.sortable-task-list[data-project-id="${projectId}"]`)
+function initSortableTasks() {
+    var $lists = $(".sortable-task-list");
+
+    $lists.each(function () {
+        if ($(this).hasClass("ui-sortable")) {
+            $(this).sortable("destroy");
+        }
+    });
+
+    $lists
         .sortable({
-            connectWith: `.sortable-task-list[data-project-id="${projectId}"]`,
+            connectWith: ".sortable-task-list",
             placeholder: "task-placeholder",
             cursor: "move",
             tolerance: "pointer",
             helper: "clone",
             opacity: 0.6,
             receive: function (event, ui) {
-                const taskId = ui.item.data("task-id");
-                const newStatus = $(this).data("status");
-                const projectId = $(this).data("project-id");
+                var taskId = ui.item.data("task-id");
+                var newStatus = String($(this).data("status") || "1");
 
-                // Hapus empty placeholder jika ada
+                var targetProjectId = normalizeNullableProjectId(
+                    $(this).data("project-id"),
+                );
+                var sourceProjectId = normalizeNullableProjectId(
+                    ui.sender ? ui.sender.data("project-id") : null,
+                );
+
                 $(this).find(".empty-placeholder").remove();
-
-                // Update status task via API
-                updateTaskStatus(taskId, newStatus, projectId);
+                updateTaskStatus(
+                    taskId,
+                    newStatus,
+                    targetProjectId,
+                    sourceProjectId,
+                );
             },
-            remove: function (event, ui) {
-                // Jika kolom jadi kosong, tambahkan empty placeholder
+            remove: function () {
                 if ($(this).children(".task-card").length === 0) {
-                    $(this).html(`
-                    <div class="text-center py-8 text-gray-400 empty-placeholder">
-                        <i class="ph-bold ph-clipboard-text text-xl mb-2"></i>
-                        <p class="text-xs">Tidak ada task</p>
-                    </div>
-                `);
+                    $(this).html(
+                        '<div class="text-center py-8 text-gray-400 empty-placeholder">' +
+                            '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
+                            '<p class="text-xs">Tidak ada task</p>' +
+                            "</div>",
+                    );
                 }
             },
         })
         .disableSelection();
 }
 
-// Update status task via API
-function updateTaskStatus(taskId, newStatus, projectId) {
+function updateTaskStatus(taskId, newStatus, targetProjectId, sourceProjectId) {
     $.ajax({
-        url: `${API_BASE_URL}/tasks/${taskId}`,
+        url: API_BASE_URL + "/tasks/" + taskId,
         type: "PUT",
         headers: headers,
+        contentType: "application/json",
         data: JSON.stringify({
-            status: newStatus,
+            status: String(newStatus),
+            idproject: targetProjectId,
         }),
-        success: function (response) {
-            console.log(
-                `Task ${taskId} berhasil dipindahkan ke status ${newStatus}`,
-            );
+        success: function () {
+            loadUnassignedTasks();
 
-            // Update counter badge
-            loadProjectTasks(projectId);
+            if (targetProjectId !== null) {
+                loadProjectTasks(targetProjectId);
+            }
+
+            if (
+                sourceProjectId !== null &&
+                String(sourceProjectId) !== String(targetProjectId)
+            ) {
+                loadProjectTasks(sourceProjectId);
+            }
         },
         error: function (xhr) {
             console.error("Gagal memindahkan task:", xhr);
             alert("Gagal memindahkan task. Silakan coba lagi.");
 
-            // Reload tasks untuk reset posisi
-            loadProjectTasks(projectId);
+            loadUnassignedTasks();
+            loadOwnerProjects();
         },
     });
 }
@@ -762,7 +899,58 @@ function initModalHandlers() {
         $("#project-name").val("");
     });
 
-    // Create project form
+    $("#global-add-task-btn")
+        .off("click.globalAddTask")
+        .on("click.globalAddTask", function () {
+            $("#modal-add-task-name").val("");
+            $("#modal-add-task").removeClass("hidden").addClass("flex");
+            $("#modal-add-task-name").focus();
+        });
+
+    $(document)
+        .off("click.modalAddTaskClose")
+        .on(
+            "click.modalAddTaskClose",
+            "#modal-add-task-close, #modal-add-task-cancel",
+            function () {
+                $("#modal-add-task").addClass("hidden").removeClass("flex");
+            },
+        );
+
+    $(document)
+        .off("click.modalAddTaskSave")
+        .on("click.modalAddTaskSave", "#modal-add-task-save", function () {
+            var name = String($("#modal-add-task-name").val() || "").trim();
+
+            if (!name) {
+                if (window.toastr)
+                    toastr.warning("Nama tugas tidak boleh kosong");
+                else alert("Nama tugas tidak boleh kosong");
+                $("#modal-add-task-name").focus();
+                return;
+            }
+
+            var $saveBtn = $(this);
+            $saveBtn.prop("disabled", true);
+
+            addTaskToProject(null, name)
+                .done(function (res) {
+                    $("#modal-add-task").addClass("hidden").removeClass("flex");
+                    $("#modal-add-task-name").val("");
+                    loadUnassignedTasks();
+                })
+                .fail(function (xhr) {
+                    var msg =
+                        (xhr.responseJSON && xhr.responseJSON.message) ||
+                        "Gagal menambahkan task";
+                    if (window.toastr) toastr.error(msg);
+                    else alert(msg);
+                })
+                .always(function () {
+                    $saveBtn.prop("disabled", false);
+                });
+        });
+
     $("#create-project-form").submit(function (e) {
         e.preventDefault();
 
@@ -773,14 +961,14 @@ function initModalHandlers() {
         }
 
         $.ajax({
-            url: `${API_BASE_URL}/projects`,
+            url: API_BASE_URL + "/projects",
             type: "POST",
             headers: headers,
             data: JSON.stringify({ nama_project: projectName }),
-            success: function (response) {
+            success: function () {
                 $("#modal-create-project").addClass("hidden");
                 $("#project-name").val("");
-                loadOwnerProjects(); // Reload projects
+                loadOwnerProjects();
             },
             error: function (xhr) {
                 console.error("Gagal membuat project:", xhr);
@@ -790,66 +978,12 @@ function initModalHandlers() {
     });
 }
 
-// Modal handlers untuk "Tambah Tugas"
-$(document).on("click", ".open-add-task-modal", function () {
-    const projectId = $(this).data("project-id");
-    const projectName =
-        $(this).data("project-name") ||
-        $(this).closest(".project-card").find("h3").text().trim();
-
-    $("#modal-add-task-project-id").val(projectId);
-    $("#modal-add-task-project-name").text(projectName);
-    $("#modal-add-task-name").val("");
-    $("#modal-add-task-desc").val("");
-
-    $("#modal-add-task").removeClass("hidden").addClass("flex");
-    $("#modal-add-task-name").focus();
-});
-
-$(document).on(
-    "click",
-    "#modal-add-task-close, #modal-add-task-cancel",
-    function () {
-        $("#modal-add-task").addClass("hidden").removeClass("flex");
-    },
-);
-
-// Safe handler untuk tombol Simpan Tugas (menghindari .trim() pada undefined)
-$(document).on("click", "#modal-add-task-save", function () {
-    const projectId = $("#modal-add-task-project-id").val();
-    const name = ($("#modal-add-task-name").val() || "").toString().trim();
-
-    if (!name) {
-        if (window.toastr) toastr.warning("Nama tugas tidak boleh kosong");
-        else alert("Nama tugas tidak boleh kosong");
-        $("#modal-add-task-name").focus();
-        return;
-    }
-
-    addTaskToProject(projectId, name)
-        .done(function (res) {
-            if (window.toastr)
-                toastr.success(
-                    (res && res.message) || "Tugas berhasil ditambahkan",
-                );
-            loadProjectTasks(projectId);
-            $("#modal-add-task").addClass("hidden").removeClass("flex");
-        })
-        .fail(function (xhr) {
-            const msg =
-                xhr.responseJSON && xhr.responseJSON.message
-                    ? xhr.responseJSON.message
-                    : "Gagal menambahkan task";
-            if (window.toastr) toastr.error(msg);
-            else alert(msg);
-        });
-});
-
 // Initialize the dashboard
 function initOwnerDashboard() {
     loadOwnerProjects();
+    loadUnassignedTasks();
     initModalHandlers();
-    initSearch(); // <-- call search init
+    initSearch();
 }
 
 // Load dashboard ketika document ready

@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://trelloapp.id/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://trelloapp.id/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 document.addEventListener("DOMContentLoaded", async function () {
     const apiEndpoint = `${API_BASE_URL}/projects`;
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (!userResponse.ok) {
             throw new Error(
-                `Error ${userResponse.status}: ${userResponse.statusText}`
+                `Error ${userResponse.status}: ${userResponse.statusText}`,
             );
         }
 
@@ -55,112 +55,116 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             // Loop melalui data proyek yang diterima
             projects.forEach((project) => {
-            // Membuat elemen div untuk card proyek
-            const projectCard = document.createElement("div");
-            projectCard.classList.add("project-card");
+                // Membuat elemen div untuk card proyek
+                const projectCard = document.createElement("div");
+                projectCard.classList.add("project-card");
 
-            // Membuat elemen a untuk nama proyek
-            const projectLink = document.createElement("a");
-            projectLink.href = `/project/${project.idproject}`;
+                // Membuat elemen a untuk nama proyek
+                const projectLink = document.createElement("a");
+                projectLink.href = `/project/${project.idproject}`;
 
-            // Membuat elemen h2 untuk nama proyek dengan class truncate
-            const projectName = document.createElement("h2");
-            projectName.classList.add("project-card-title"); // Tambahkan class ini
-            projectName.textContent = project.nama_project;
+                // Membuat elemen h2 untuk nama proyek dengan class truncate
+                const projectName = document.createElement("h2");
+                projectName.classList.add("project-card-title"); // Tambahkan class ini
+                projectName.textContent = project.nama_project;
 
-            // Membuat elemen p untuk tanggal update
-            const updatedAt = document.createElement("p");
-            updatedAt.textContent = `Di update ${timeAgo(
-                new Date(project.updated_at)
-            )}`;
+                // Membuat elemen p untuk tanggal update
+                const updatedAt = document.createElement("p");
+                updatedAt.textContent = `Di update ${timeAgo(
+                    new Date(project.updated_at),
+                )}`;
 
-            // Menambahkan nama proyek ke dalam card
-            projectCard.appendChild(projectName);
-            projectCard.appendChild(updatedAt);
+                // Menambahkan nama proyek ke dalam card
+                projectCard.appendChild(projectName);
+                projectCard.appendChild(updatedAt);
 
-            // Membungkus seluruh card dengan link
-            projectLink.appendChild(projectCard);
+                // Membungkus seluruh card dengan link
+                projectLink.appendChild(projectCard);
 
-            // Menambahkan card ke dalam kontainer proyek
-            projectContainer.appendChild(projectLink);
-        });
+                // Menambahkan card ke dalam kontainer proyek
+                projectContainer.appendChild(projectLink);
+            });
 
-        initProjectCardTooltips();
+            initProjectCardTooltips();
 
-        // Initialize tooltip untuk project card title
-function initProjectCardTooltips() {
-    const projectTitles = document.querySelectorAll('.project-card-title');
-    
-    projectTitles.forEach(titleElement => {
-        titleElement.addEventListener('mouseenter', function(e) {
-            const projectName = this.textContent.trim();
-            
-            // Hanya tampilkan tooltip jika text ter-truncate
-            if (this.scrollHeight > this.clientHeight) {
-                showProjectCardTooltip(e, projectName, this);
+            // Initialize tooltip untuk project card title
+            function initProjectCardTooltips() {
+                const projectTitles = document.querySelectorAll(
+                    ".project-card-title",
+                );
+
+                projectTitles.forEach((titleElement) => {
+                    titleElement.addEventListener("mouseenter", function (e) {
+                        const projectName = this.textContent.trim();
+
+                        // Hanya tampilkan tooltip jika text ter-truncate
+                        if (this.scrollHeight > this.clientHeight) {
+                            showProjectCardTooltip(e, projectName, this);
+                        }
+                    });
+
+                    titleElement.addEventListener("mouseleave", function () {
+                        hideProjectCardTooltip();
+                    });
+                });
             }
-        });
-        
-        titleElement.addEventListener('mouseleave', function() {
-            hideProjectCardTooltip();
-        });
-    });
-}
 
-function showProjectCardTooltip(e, text, element) {
-    // Remove existing tooltip
-    const existingTooltip = document.getElementById('project-card-tooltip');
-    if (existingTooltip) {
-        existingTooltip.remove();
-    }
-    
-    // Create new tooltip
-    const tooltip = document.createElement('div');
-    tooltip.id = 'project-card-tooltip';
-    tooltip.className = 'bubble-tooltip';
-    tooltip.textContent = text;
-    document.body.appendChild(tooltip);
-    
-    // Calculate position after tooltip is rendered
-    setTimeout(() => {
-        const rect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        
-        // Center above the title
-        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-        let top = rect.top - tooltipRect.height - 10;
-        
-        // Keep within viewport
-        if (left < 10) left = 10;
-        if (left + tooltipRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - tooltipRect.width - 10;
-        }
-        
-        // If not enough space above, show below
-        if (top < 10) {
-            top = rect.bottom + 10;
-        }
-        
-        tooltip.style.position = 'fixed';
-        tooltip.style.left = left + 'px';
-        tooltip.style.top = top + 'px';
-        tooltip.style.opacity = '1';
-        tooltip.style.zIndex = '10000';
-        tooltip.style.maxWidth = '300px';
-        tooltip.style.whiteSpace = 'normal';
-        tooltip.style.wordWrap = 'break-word';
-        tooltip.style.lineHeight = '1.5';
-    }, 0);
-}
+            function showProjectCardTooltip(e, text, element) {
+                // Remove existing tooltip
+                const existingTooltip = document.getElementById(
+                    "project-card-tooltip",
+                );
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
 
-function hideProjectCardTooltip() {
-    const tooltip = document.getElementById('project-card-tooltip');
-    if (tooltip) {
-        tooltip.style.opacity = '0';
-        setTimeout(() => tooltip.remove(), 200);
-    }
-}
+                // Create new tooltip
+                const tooltip = document.createElement("div");
+                tooltip.id = "project-card-tooltip";
+                tooltip.className = "bubble-tooltip";
+                tooltip.textContent = text;
+                document.body.appendChild(tooltip);
 
+                // Calculate position after tooltip is rendered
+                setTimeout(() => {
+                    const rect = element.getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+
+                    // Center above the title
+                    let left =
+                        rect.left + rect.width / 2 - tooltipRect.width / 2;
+                    let top = rect.top - tooltipRect.height - 10;
+
+                    // Keep within viewport
+                    if (left < 10) left = 10;
+                    if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10;
+                    }
+
+                    // If not enough space above, show below
+                    if (top < 10) {
+                        top = rect.bottom + 10;
+                    }
+
+                    tooltip.style.position = "fixed";
+                    tooltip.style.left = left + "px";
+                    tooltip.style.top = top + "px";
+                    tooltip.style.opacity = "1";
+                    tooltip.style.zIndex = "10000";
+                    tooltip.style.maxWidth = "300px";
+                    tooltip.style.whiteSpace = "normal";
+                    tooltip.style.wordWrap = "break-word";
+                    tooltip.style.lineHeight = "1.5";
+                }, 0);
+            }
+
+            function hideProjectCardTooltip() {
+                const tooltip = document.getElementById("project-card-tooltip");
+                if (tooltip) {
+                    tooltip.style.opacity = "0";
+                    setTimeout(() => tooltip.remove(), 200);
+                }
+            }
         } else {
             console.log("Data tidak valid atau kosong");
 
@@ -174,7 +178,8 @@ function hideProjectCardTooltip() {
             projectDesc.textContent =
                 "Buat proyek baru sekarang untuk mulai berkolaborasi dan menyelesaikan target Anda.";
             const addProjectButton = document.createElement("button");
-            addProjectButton.innerHTML = '<i class="ph-bold ph-plus"></i> Buat Proyek';
+            addProjectButton.innerHTML =
+                '<i class="ph-bold ph-plus"></i> Buat Proyek';
             addProjectButton.id = "add-project-btn";
             addProjectButton.addEventListener("click", function () {
                 $("#modal").removeClass("hidden");

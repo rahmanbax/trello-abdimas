@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://trelloapp.id/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://trelloapp.id/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token"); // Mengambil token
 const projectId = window.location.pathname.split("/").pop();
@@ -11,8 +11,10 @@ const headers = {
     "Content-Type": "application/json",
 };
 
-if (typeof fetchProjectUsers !== 'function') {
-    window.fetchProjectUsers = function() { console.log("fetchProjectUsers not implemented"); };
+if (typeof fetchProjectUsers !== "function") {
+    window.fetchProjectUsers = function () {
+        console.log("fetchProjectUsers not implemented");
+    };
 }
 // Panggil fungsi ini saat modal "Bagikan Board" dibuka
 $("#invite-member-btn").click(function () {
@@ -36,7 +38,7 @@ const storeOriginalPosition = (taskElement) => {
     const boardId = taskElement.closest(".swim-lane")?.id;
     if (boardId) {
         const tasksInBoard = Array.from(
-            document.querySelectorAll(`#${boardId} .task`)
+            document.querySelectorAll(`#${boardId} .task`),
         );
         const originalIndex = tasksInBoard.indexOf(taskElement);
         originalPositions.set(taskElement.dataset.id, {
@@ -56,7 +58,7 @@ const checkIfOrderChanged = (boardId, taskElement) => {
     }
 
     const currentTasks = Array.from(
-        document.querySelectorAll(`#${boardId} .task`)
+        document.querySelectorAll(`#${boardId} .task`),
     );
     const currentIndex = currentTasks.indexOf(taskElement);
 
@@ -129,15 +131,15 @@ const insertAboveTask = (zone, mouseY) => {
 
 // Fungsi untuk escape HTML entities
 function escapeHtml(text) {
-    if (!text) return '';
+    if (!text) return "";
     const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -151,9 +153,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             alert(errorData.message || "Akses ditolak.");
             window.location.href = "/project"; // Redirect ke halaman daftar project
             return; // Stop eksekusi selanjutnya
-        }    
+        }
 
-        const taskData = await taskResponse.json();        
+        const taskData = await taskResponse.json();
 
         // console.log("Data tugas:", taskData); // Debugging data tugas
 
@@ -173,34 +175,43 @@ document.addEventListener("DOMContentLoaded", async function () {
                     <div class="flex items-center gap-2 mb-2">
                         <h5 class="text-lg font-medium text-black">${escapeHtml(task.nama_task)}</h5>
                     </div>
-                    <input type="hidden" class="gdrive-link-hidden" value="${escapeHtml(task.gdrive_link || '')}">
+                    <input type="hidden" class="gdrive-link-hidden" value="${escapeHtml(task.gdrive_link || "")}">
                 `;
 
                 const editDeleteDiv = document.createElement("div");
                 editDeleteDiv.classList.add("edit-delete");
-                
+
                 const actionsDiv = document.createElement("div");
-                actionsDiv.classList.add("flex", "items-center", "gap-1", "flex-shrink-0", "mt-2");
+                actionsDiv.classList.add(
+                    "flex",
+                    "items-center",
+                    "gap-1",
+                    "flex-shrink-0",
+                    "mt-2",
+                );
                 if (task.gdrive_link) {
                     const linkButton = document.createElement("a");
                     linkButton.href = escapeHtml(task.gdrive_link);
                     linkButton.target = "_blank";
                     linkButton.rel = "noopener noreferrer";
                     linkButton.draggable = "false";
-                    linkButton.className = "inline-flex items-center justify-center text-sm text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors z-10";
+                    linkButton.className =
+                        "inline-flex items-center justify-center text-sm text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors z-10";
                     linkButton.title = "Buka Dokumentasi";
                     linkButton.innerHTML = '<i class="ph-bold ph-link"></i>';
                     actionsDiv.appendChild(linkButton);
                 }
 
                 const editButton = document.createElement("button");
-                editButton.className = "edit-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 transition-colors";
+                editButton.className =
+                    "edit-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 transition-colors";
                 editButton.innerHTML =
                     '<i class="ph-bold ph-pencil-simple"></i>';
                 actionsDiv.appendChild(editButton);
 
                 const deleteButton = document.createElement("button");
-                deleteButton.className = "delete-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-red-100 transition-colors";
+                deleteButton.className =
+                    "delete-btn btn inline-flex items-center justify-center p-1.5 rounded hover:bg-red-100 transition-colors";
                 deleteButton.innerHTML = '<i class="ph-bold ph-trash"></i>';
 
                 actionsDiv.appendChild(deleteButton);
@@ -228,7 +239,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     e.dataTransfer.setDragImage(
                         dragImage,
                         e.offsetX,
-                        e.offsetY
+                        e.offsetY,
                     );
 
                     // Clean up drag image after a short delay
@@ -329,7 +340,6 @@ draggables.forEach((task) => {
         task.style.transition = "";
     });
 });
-
 
 droppables.forEach((zone) => {
     zone.addEventListener("dragover", (e) => {
@@ -437,7 +447,8 @@ $(document).on("click", ".edit-btn", function () {
     const taskId = $(this).closest(".task").data("id"); // Ambil task ID
     const taskName = $(this).closest(".task").text().trim(); // Ambil nama task
     const status = $(this).closest(".task").data("status");
-    const gdriveLink = $(this).closest(".task").find(".gdrive-link-hidden").val() || '';
+    const gdriveLink =
+        $(this).closest(".task").find(".gdrive-link-hidden").val() || "";
 
     // Isi modal edit dengan nama tugas yang dipilih
     $("#taskname-edit").val(taskName);
@@ -526,48 +537,53 @@ $.ajax({
     headers: headers,
     success: function (response) {
         const projectName = response.nama_project;
-        
+
         // Set title
         projectNameElement.textContent = projectName;
         document.title = `${projectName} | ProCodeCG`;
-        
+
         // Tambahkan class truncate secara default
         const titleElement = $("#project-name");
-        titleElement.addClass('project-title-truncate');
-        
+        titleElement.addClass("project-title-truncate");
+
         // Initialize click to expand/collapse
         setTimeout(() => {
             // Check if title is truncated
-            const isTruncated = titleElement[0].scrollWidth > titleElement[0].clientWidth;
-            
+            const isTruncated =
+                titleElement[0].scrollWidth > titleElement[0].clientWidth;
+
             if (isTruncated) {
-                titleElement.css('cursor', 'pointer');
-                
+                titleElement.css("cursor", "pointer");
+
                 let isExpanded = false;
-                titleElement.on('click', function() {
+                titleElement.on("click", function () {
                     if (!isExpanded) {
                         // Expand
-                        $(this).removeClass('project-title-truncate').addClass('project-title-expanded');
+                        $(this)
+                            .removeClass("project-title-truncate")
+                            .addClass("project-title-expanded");
                         isExpanded = true;
                     } else {
                         // Collapse
-                        $(this).removeClass('project-title-expanded').addClass('project-title-truncate');
+                        $(this)
+                            .removeClass("project-title-expanded")
+                            .addClass("project-title-truncate");
                         isExpanded = false;
                     }
                 });
             }
-            
+
             // Tooltip on hover - KEMBALIKAN mousemove event
-            titleElement.on('mouseenter', function(e) {
+            titleElement.on("mouseenter", function (e) {
                 showProjectTitleTooltip(e, projectName);
             });
-            
+
             // Event mousemove untuk bikin tooltip ngikut cursor
-            titleElement.on('mousemove', function(e) {
+            titleElement.on("mousemove", function (e) {
                 updateProjectTitleTooltipPosition(e);
             });
-            
-            titleElement.on('mouseleave', function() {
+
+            titleElement.on("mouseleave", function () {
                 hideProjectTitleTooltip();
             });
         }, 100);
@@ -582,73 +598,73 @@ $.ajax({
 // Fungsi tooltip untuk project title
 function showProjectTitleTooltip(e, text) {
     // Remove existing tooltip
-    const existingTooltip = document.getElementById('project-title-tooltip');
+    const existingTooltip = document.getElementById("project-title-tooltip");
     if (existingTooltip) {
         existingTooltip.remove();
     }
-    
+
     // Check semua bubble-tooltip yang mungkin ada
-    const allBubbleTooltips = document.querySelectorAll('.bubble-tooltip');
-    allBubbleTooltips.forEach(t => t.remove());
-    
+    const allBubbleTooltips = document.querySelectorAll(".bubble-tooltip");
+    allBubbleTooltips.forEach((t) => t.remove());
+
     // Create new tooltip
-    const tooltip = document.createElement('div');
-    tooltip.id = 'project-title-tooltip';
-    tooltip.className = 'bubble-tooltip';
+    const tooltip = document.createElement("div");
+    tooltip.id = "project-title-tooltip";
+    tooltip.className = "bubble-tooltip";
     tooltip.textContent = text;
     document.body.appendChild(tooltip);
-    
+
     // Calculate position after tooltip is rendered
     setTimeout(() => {
-        const titleElement = document.getElementById('project-name');
+        const titleElement = document.getElementById("project-name");
         const rect = titleElement.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
-        
+
         // Center above the title
-        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
         let top = rect.top - tooltipRect.height - 10;
-        
+
         // Keep within viewport horizontally
         if (left < 10) left = 10;
         if (left + tooltipRect.width > window.innerWidth - 10) {
             left = window.innerWidth - tooltipRect.width - 10;
         }
-        
+
         // If not enough space above, show below
         if (top < 10) {
             top = rect.bottom + 10;
         }
-        
-        tooltip.style.position = 'fixed';
-        tooltip.style.left = left + 'px';
-        tooltip.style.top = top + 'px';
-        tooltip.style.opacity = '1';
-        tooltip.style.zIndex = '10000';
-        tooltip.style.maxWidth = '400px';
-        tooltip.style.whiteSpace = 'normal';
-        tooltip.style.wordWrap = 'break-word';
-        tooltip.style.lineHeight = '1.5';
+
+        tooltip.style.position = "fixed";
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
+        tooltip.style.opacity = "1";
+        tooltip.style.zIndex = "10000";
+        tooltip.style.maxWidth = "400px";
+        tooltip.style.whiteSpace = "normal";
+        tooltip.style.wordWrap = "break-word";
+        tooltip.style.lineHeight = "1.5";
     }, 0);
 }
 
 function updateProjectTitleTooltipPosition(e) {
-    const tooltip = $('#project-title-tooltip');
-    if (tooltip.length && tooltip.css('opacity') === '1') {
+    const tooltip = $("#project-title-tooltip");
+    if (tooltip.length && tooltip.css("opacity") === "1") {
         const tooltipRect = tooltip[0].getBoundingClientRect();
-        const left = e.clientX - (tooltipRect.width / 2);
+        const left = e.clientX - tooltipRect.width / 2;
         const top = e.clientY - tooltipRect.height - 12;
-        
+
         tooltip.css({
-            left: left + 'px',
-            top: top + 'px'
+            left: left + "px",
+            top: top + "px",
         });
     }
 }
 
 function hideProjectTitleTooltip() {
-    const tooltip = $('#project-title-tooltip');
+    const tooltip = $("#project-title-tooltip");
     if (tooltip.length) {
-        tooltip.css('opacity', '0');
+        tooltip.css("opacity", "0");
         setTimeout(() => tooltip.remove(), 200);
     }
 }
@@ -916,68 +932,114 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
     headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
-        },
-    })
+    },
+})
     .then((response) => response.json())
     .then((data) => {
         const container = document.getElementById("member-container");
         const bubbles = document.getElementById("user-bubbles");
-        
+
         bubbles.innerHTML = "";
 
         const maxVisibleBubbles = 4;
-        const totalUsers = 1 + data.users.length; 
+        const totalUsers = 1 + data.users.length;
         const remainingUsers = totalUsers - maxVisibleBubbles;
 
         // Owner bubble
         const ownerBubble = document.createElement("div");
         ownerBubble.classList.add(
-            "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
-            "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow"
+            "w-8",
+            "h-8",
+            "rounded-full",
+            "flex",
+            "items-center",
+            "justify-center",
+            "text-white",
+            "font-bold",
+            "text-xs",
+            "border-2",
+            "border-white",
+            "shadow",
         );
         ownerBubble.style.background = generateGradient();
         ownerBubble.textContent = getInitials(data.owner.name);
         bubbles.appendChild(ownerBubble);
 
-        ownerBubble.addEventListener('mouseenter', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
-        ownerBubble.addEventListener('mousemove', (e) => showTooltip(e, data.owner.name + " (Pemilik)"));
-        ownerBubble.addEventListener('mouseleave', hideTooltip);
+        ownerBubble.addEventListener("mouseenter", (e) =>
+            showTooltip(e, data.owner.name + " (Pemilik)"),
+        );
+        ownerBubble.addEventListener("mousemove", (e) =>
+            showTooltip(e, data.owner.name + " (Pemilik)"),
+        );
+        ownerBubble.addEventListener("mouseleave", hideTooltip);
 
         // User bubbles
         const visibleUsers = data.users.slice(0, maxVisibleBubbles - 1);
-        
+
         visibleUsers.forEach((user) => {
             const userBubble = document.createElement("div");
             userBubble.classList.add(
-                "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
-                "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow",
-                "-ml-2"
+                "w-8",
+                "h-8",
+                "rounded-full",
+                "flex",
+                "items-center",
+                "justify-center",
+                "text-white",
+                "font-bold",
+                "text-xs",
+                "border-2",
+                "border-white",
+                "shadow",
+                "-ml-2",
             );
             userBubble.style.background = generateGradient();
             userBubble.textContent = getInitials(user.name);
             bubbles.appendChild(userBubble);
 
-            userBubble.addEventListener('mouseenter', (e) => showTooltip(e, user.name));
-            userBubble.addEventListener('mousemove', (e) => showTooltip(e, user.name));
-            userBubble.addEventListener('mouseleave', hideTooltip);
+            userBubble.addEventListener("mouseenter", (e) =>
+                showTooltip(e, user.name),
+            );
+            userBubble.addEventListener("mousemove", (e) =>
+                showTooltip(e, user.name),
+            );
+            userBubble.addEventListener("mouseleave", hideTooltip);
         });
 
         // Jika ada user lebih dari maksimal, tampilkan bubble "+N"
         if (remainingUsers > 0) {
             const moreBubble = document.createElement("div");
             moreBubble.classList.add(
-                "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center",
-                "bg-gray-400", "text-white", "font-bold", "text-xs", "border-2", "border-white", "shadow",
-                "-ml-2"
+                "w-8",
+                "h-8",
+                "rounded-full",
+                "flex",
+                "items-center",
+                "justify-center",
+                "bg-gray-400",
+                "text-white",
+                "font-bold",
+                "text-xs",
+                "border-2",
+                "border-white",
+                "shadow",
+                "-ml-2",
             );
             moreBubble.textContent = `+${remainingUsers}`;
             bubbles.appendChild(moreBubble);
 
             // Tooltip untuk bubble +N
-            const hiddenUserNames = data.users.slice(maxVisibleBubbles - 1).map(u => u.name).join(', ');
-            moreBubble.addEventListener('mouseenter', (e) => showTooltip(e, hiddenUserNames));
-            moreBubble.addEventListener('mousemove', (e) => showTooltip(e, hiddenUserNames));
-            moreBubble.addEventListener('mouseleave', hideTooltip);
+            const hiddenUserNames = data.users
+                .slice(maxVisibleBubbles - 1)
+                .map((u) => u.name)
+                .join(", ");
+            moreBubble.addEventListener("mouseenter", (e) =>
+                showTooltip(e, hiddenUserNames),
+            );
+            moreBubble.addEventListener("mousemove", (e) =>
+                showTooltip(e, hiddenUserNames),
+            );
+            moreBubble.addEventListener("mouseleave", hideTooltip);
         }
 
         // --- Generate Card untuk Owner ---
@@ -992,7 +1054,7 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
             "px-4",
             "bg-gray-100",
             "rounded-md",
-            "mt-2"
+            "mt-2",
         );
 
         const ownerInitial = document.createElement("div");
@@ -1005,7 +1067,7 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
             "justify-center",
             "text-white",
             "text-sm",
-            "font-bold"
+            "font-bold",
         );
         ownerInitial.style.background = generateGradient();
         ownerInitial.textContent = getInitials(owner.name);
@@ -1043,7 +1105,7 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
                 "px-4",
                 "bg-gray-100",
                 "rounded-md",
-                "mt-2"
+                "mt-2",
             );
 
             const userInitial = document.createElement("div");
@@ -1056,7 +1118,7 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
                 "justify-center",
                 "text-white",
                 "text-sm",
-                "font-bold"
+                "font-bold",
             );
             userInitial.style.background = generateGradient();
             userInitial.textContent = getInitials(user.name);
@@ -1085,8 +1147,12 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
                 const removeButton = document.createElement("button");
                 removeButton.textContent = "Hapus";
                 removeButton.classList.add(
-                    "text-gray-500", "text-sm", "font-medium",
-                    "hover:text-red-500", "transition", "ease-in-out"
+                    "text-gray-500",
+                    "text-sm",
+                    "font-medium",
+                    "hover:text-red-500",
+                    "transition",
+                    "ease-in-out",
                 );
                 removeButton.onclick = () => removeUser(user.id); // ← MEMANGGIL FUNGSI HAPUS
                 card.appendChild(removeButton);
@@ -1099,18 +1165,18 @@ fetch(`${API_BASE_URL}/projects/${projectId}/users`, {
 // Fungsi untuk mengambil inisial
 function getInitials(name) {
     return name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
         .toUpperCase();
 }
 function generateGradient() {
     const colors = [
-        ['#6EE7B7', '#3B82F6'],
-        ['#FDE68A', '#FCA5A5'],
-        ['#A5B4FC', '#F472B6'],
-        ['#F9A8D4', '#F87171'],
-        ['#FCD34D', '#34D399'],
+        ["#6EE7B7", "#3B82F6"],
+        ["#FDE68A", "#FCA5A5"],
+        ["#A5B4FC", "#F472B6"],
+        ["#F9A8D4", "#F87171"],
+        ["#FCD34D", "#34D399"],
     ];
     const idx = Math.floor(Math.random() * colors.length);
     return `linear-gradient(135deg, ${colors[idx][0]}, ${colors[idx][1]})`;
@@ -1148,7 +1214,7 @@ function removeUser(userId) {
 let tooltipReady = false;
 
 // Set tooltipReady setelah page fully loaded
-$(document).ready(function() {
+$(document).ready(function () {
     setTimeout(() => {
         tooltipReady = true;
     }, 500); // Delay 500ms setelah page load
@@ -1158,12 +1224,12 @@ $(document).ready(function() {
 function showTooltip(e, text) {
     // Prevent tooltip muncul saat initial load
     if (!tooltipReady) return;
-    
-    let tooltip = document.getElementById('bubble-tooltip');
+
+    let tooltip = document.getElementById("bubble-tooltip");
     if (!tooltip) {
-        tooltip = document.createElement('div');
-        tooltip.id = 'bubble-tooltip';
-        tooltip.className = 'bubble-tooltip';
+        tooltip = document.createElement("div");
+        tooltip.id = "bubble-tooltip";
+        tooltip.className = "bubble-tooltip";
         document.body.appendChild(tooltip);
     }
     tooltip.textContent = text;
@@ -1173,16 +1239,20 @@ function showTooltip(e, text) {
     setTimeout(() => {
         const bubbleRect = e.target.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
-        const left = bubbleRect.left + window.scrollX + bubbleRect.width / 2 - tooltipRect.width / 2;
+        const left =
+            bubbleRect.left +
+            window.scrollX +
+            bubbleRect.width / 2 -
+            tooltipRect.width / 2;
         const top = bubbleRect.top + window.scrollY - tooltipRect.height - 12;
-        
-        tooltip.style.left = left + 'px';
-        tooltip.style.top = top + 'px';
+
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
     }, 0);
 }
 
 function hideTooltip() {
-    const tooltip = document.getElementById('bubble-tooltip');
+    const tooltip = document.getElementById("bubble-tooltip");
     if (tooltip) {
         tooltip.style.opacity = 0;
         setTimeout(() => {

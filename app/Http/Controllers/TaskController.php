@@ -4,27 +4,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Task;
+use App\Models\Project;
 
 class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        // Mengambil parameter 'idproject' dari query string
+        if ($request->boolean("unassigned")) {
+            $tasks = Task::whereNull("idproject")->orderBy("order")->get();
+
+            return response()->json($tasks);
+        }
+
         $idProject = $request->query("idproject");
 
-        // Memastikan bahwa idproject ada dalam query dan valid
-        if ($idProject) {
-            // Menyaring data task berdasarkan 'idproject'
+        if ($idProject !== null && $idProject !== "") {
             $tasks = Task::where("idproject", $idProject)
                 ->orderBy("order")
                 ->get();
-        } else {
-            // Jika tidak ada parameter 'idproject', ambil semua data task
-            $tasks = Task::all();
+
+            return response()->json($tasks);
         }
 
-        // Kembalikan data dalam format JSON
-        return response()->json($tasks);
+        return response()->json(Task::orderBy("order")->get());
     }
     /**
      * Fetch all tasks with their related projects.
@@ -41,37 +43,48 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            "status" => "sometimes|required|in:1,2,3",
             "nama_task" => "required|string|max:255",
+            "deskripsi" => "sometimes|nullable|string",
             "order" => "sometimes|integer",
-            "idproject" => "required|exists:projects,idproject",
-            "gdrive_link" => "nullable|string|url",
+            "gdrive_link" => "sometimes|nullable|string|url",
+            "idproject" => "nullable|exists:projects,idproject",
         ]);
 
-        // Jika order tidak dikirim, set otomatis ke max(order) + 1 untuk project ini
+        if (!isset($validated["status"])) {
+            $validated["status"] = 1;
+        }
+
+        if (!array_key_exists("idproject", $validated)) {
+            $validated["idproject"] = null;
+        }
+
         if (!isset($validated["order"])) {
-            $maxOrder = Task::where("idproject", $validated["idproject"])->max(
-                "order",
-            );
+            $orderQuery = Task::query();
+
+            if (is_null($validated["idproject"])) {
+                $orderQuery->whereNull("idproject");
+            } else {
+                $orderQuery->where("idproject", $validated["idproject"]);
+            }
+
+            $maxOrder = $orderQuery->max("order");
             $validated["order"] = is_null($maxOrder) ? 1 : $maxOrder + 1;
         }
 
         $task = Task::create($validated);
 
-        // (opsional) load hubungan jika diperlukan
-        // $task->load('user');
+        if ($task->project) {
+            $task->project->update(["updated_at" => now()]);
+        }
 
-        $project = $task->project;
-        $project->update([
-            "updated_at" => now(), // Update the project timestamp
-        ]);
-
-        return response()->json(
-            [
-                "message" => "Task created successfully",
-                "task" => $task,
-            ],
-            201,
-        );
+        // return response()->json(
+        //     [
+        //         "message" => "Task created successfully",
+        //         "task" => $task,
+        //     ],
+        //     201,
+        // );
     }
 
     /**
@@ -94,20 +107,34 @@ class TaskController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Cari task
             $task = Task::findOrFail($id);
+            $oldProjectId = $task->idproject;
 
-            // Validasi input
             $validated = $request->validate([
                 "status" => "sometimes|required|in:1,2,3",
                 "nama_task" => "sometimes|required|string|max:255",
                 "deskripsi" => "sometimes|nullable|string",
                 "order" => "sometimes|integer",
                 "gdrive_link" => "sometimes|nullable|string|url",
+                "idproject" => "sometimes|nullable|exists:projects,idproject",
             ]);
 
-            // Update task
             $task->update($validated);
+
+            if (!is_null($oldProjectId)) {
+                Project::where("idproject", $oldProjectId)->update([
+                    "updated_at" => now(),
+                ]);
+            }
+
+            if (
+                !is_null($task->idproject) &&
+                (string) $task->idproject !== (string) $oldProjectId
+            ) {
+                Project::where("idproject", $task->idproject)->update([
+                    "updated_at" => now(),
+                ]);
+            }
 
             return response()->json(
                 [
@@ -156,12 +183,14 @@ class TaskController extends Controller
             return response()->json(["message" => "Task not found"], 404);
         }
 
+        $project = $task->project;
         $task->delete();
 
-        $project = $task->project;
-        $project->update([
-            "updated_at" => now(), // Update the project timestamp
-        ]);
+        if ($project) {
+            $project->update([
+                "updated_at" => now(),
+            ]);
+        }
 
         return response()->json(
             ["message" => "Task deleted successfully"],
