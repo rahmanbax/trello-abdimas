@@ -1,4 +1,4 @@
-<div id="loading-overlay" style="display: flex;">
+<div id="loading-overlay" style="display: none;">
     <div class="spinner"></div>
 </div>
 
@@ -11,7 +11,7 @@
         z-index: 9999;
         top: 0;
         left: 0;
-        display: flex;
+        display: none;
         justify-content: center;
         align-items: center;
     }
@@ -37,40 +37,76 @@
 </style>
 
 <script>
-    const overlay = document.getElementById('loading-overlay');
-    let activeFetches = 0;
+    (function () {
+        const overlay = document.getElementById("loading-overlay");
+        if (!overlay) return;
 
-    // Override global fetch
-    const originalFetch = window.fetch;
-    window.fetch = function (...args) {
-        if (activeFetches === 0) {
-            overlay.style.display = 'flex';
+        let activeRequests = 0;
+
+        function showOverlay() {
+            overlay.style.display = "flex";
         }
 
-        activeFetches++;
-
-        return originalFetch(...args)
-            .finally(() => {
-                activeFetches--;
-                if (activeFetches === 0) {
-                    overlay.style.display = 'none';
-                }
-            });
-    };
-
-    // Sembunyikan overlay jika tidak ada fetch saat window sudah sepenuhnya dimuat
-    window.addEventListener('load', function () {
-        if (activeFetches === 0) {
-            overlay.style.display = 'none';
+        function hideOverlay() {
+            overlay.style.display = "none";
         }
-    });
 
-    // Untuk semua form
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', () => {
-                overlay.style.display = 'flex';
-            });
+        function startLoading() {
+            activeRequests += 1;
+            showOverlay();
+        }
+
+        function stopLoading() {
+            activeRequests = Math.max(0, activeRequests - 1);
+            if (activeRequests === 0) {
+                hideOverlay();
+            }
+        }
+
+        // Track fetch requests
+        const originalFetch = window.fetch;
+        if (typeof originalFetch === "function") {
+            window.fetch = function (...args) {
+                startLoading();
+                return originalFetch(...args).finally(stopLoading);
+            };
+        }
+
+        // Track jQuery AJAX requests
+        if (window.jQuery) {
+            window.jQuery(document)
+                .off("ajaxSend.loadingOverlay ajaxComplete.loadingOverlay")
+                .on("ajaxSend.loadingOverlay", startLoading)
+                .on("ajaxComplete.loadingOverlay", stopLoading);
+        }
+
+        // Show overlay only for normal form submission (non-AJAX)
+        document.addEventListener(
+            "submit",
+            function (event) {
+                const form = event.target;
+                if (!(form instanceof HTMLFormElement)) return;
+
+                // Wait submit handlers (that may call preventDefault) first
+                setTimeout(function () {
+                    if (!event.defaultPrevented && activeRequests === 0) {
+                        showOverlay();
+                    }
+                }, 0);
+            },
+            true,
+        );
+
+        window.addEventListener("load", function () {
+            if (activeRequests === 0) {
+                hideOverlay();
+            }
         });
-    });
+
+        window.addEventListener("pageshow", function () {
+            if (activeRequests === 0) {
+                hideOverlay();
+            }
+        });
+    })();
 </script>
