@@ -228,6 +228,16 @@ function initProjectFilterUI() {
     let isSyncing = false;
     let rangeState = { start: null, end: null };
 
+    function isDatepickerInteraction(target) {
+        if (!target) return false;
+        if (target.id === "ui-datepicker-div") return true;
+
+        const className = String(target.className || "");
+        if (className.includes("ui-datepicker")) return true;
+
+        return $(target).closest("#ui-datepicker-div").length > 0;
+    }
+
     function updateRangeState(range) {
         rangeState = {
             start: range.start ? new Date(range.start) : null,
@@ -253,7 +263,7 @@ function initProjectFilterUI() {
             $rangeStart.text("--");
             $rangeEnd.text("--");
             $rangeLabel.text("Semua Project");
-            $btnText.text("Filter Waktu");
+            $btnText.text("Filter Tanggal");
             $btnRange.addClass("hidden").text("");
             $btn.removeClass("project-filter-active");
             return;
@@ -346,9 +356,9 @@ function initProjectFilterUI() {
         .off("mousedown.projectFilterDatepicker click.projectFilterDatepicker")
         .on(
             "mousedown.projectFilterDatepicker click.projectFilterDatepicker",
-            ".ui-datepicker, .ui-datepicker *",
+            "#ui-datepicker-div, #ui-datepicker-div *",
             function (e) {
-                e.stopPropagation();
+                e.stopImmediatePropagation();
             },
         );
 
@@ -357,7 +367,7 @@ function initProjectFilterUI() {
         .on("click.projectFilterOutside", function (e) {
             if (
                 !$(e.target).closest("#project-filter-dropdown").length &&
-                !$(e.target).closest(".ui-datepicker").length
+                !isDatepickerInteraction(e.target)
             ) {
                 $panel.addClass("hidden");
             }
