@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://trelloapp.id/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+// const API_BASE_URL = "https://trelloapp.id/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const token = localStorage.getItem("access_token");
 const headers = {
@@ -16,9 +16,9 @@ function loadOwnerProjects() {
         type: "GET",
         headers: headers,
         success: function (response) {
-            // simpan ke cache, lalu render
+            // simpan ke cache, lalu render berdasarkan search + filter semester aktif
             projectsCache = response.data || response || [];
-            renderOwnerProjects(projectsCache);
+            applyProjectFilters();
         },
         error: function (xhr) {
             console.error("Gagal memuat projects:", xhr);
@@ -43,24 +43,374 @@ function debounce(fn, delay = 300) {
     };
 }
 
-// Inisialisasi search field
+function parseProjectCreatedAt(createdAt) {
+    if (!createdAt) return null;
+
+    let parsed = new Date(createdAt);
+    if (Number.isNaN(parsed.getTime())) {
+        parsed = new Date(String(createdAt).replace(" ", "T"));
+    }
+
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function parseInputDate(value) {
+    if (!value) return null;
+    const raw = String(value).trim();
+
+    if (raw.includes("/")) {
+        const parts = raw.split("/");
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            let year = parseInt(parts[2], 10);
+            if (year < 100) year += 2000;
+            const parsed = new Date(year, month, day);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+    }
+
+    if (raw.includes("-")) {
+        const parsed = new Date(raw + "T00:00:00");
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const fallback = new Date(raw);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+}
+
+function toInputDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function formatFilterDate(date) {
+    return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function getSemesterRange(date) {
+    const year = date.getFullYear();
+    const isFirstSemester = date.getMonth() < 6;
+    const start = new Date(year, isFirstSemester ? 0 : 6, 1);
+    const end = new Date(year, isFirstSemester ? 6 : 12, 0);
+    const label = `Semester ${isFirstSemester ? 1 : 2} ${year}`;
+    return { start, end, label };
+}
+
+function buildFilterRange(mode, endDate) {
+    const anchorDate = endDate || new Date();
+
+    if (mode === "semester") {
+        return getSemesterRange(anchorDate);
+    }
+
+    if (mode === "last-6") {
+        const end = new Date(anchorDate);
+        const start = new Date(anchorDate);
+        start.setMonth(start.getMonth() - 6);
+        return { start, end, label: "6 Bulan Terakhir" };
+    }
+
+    return { start: null, end: null, label: "Semua Projec" };
+}
+
+function applyProjectFilters() {
+    let filtered = Array.isArray(projectsCache) ? [...projectsCache] : [];
+
+    const searchQuery = String($("#project-search").val() || "")
+        .trim()
+        .toLowerCase();
+
+    const rangeStartRaw = String(
+        $("#project-filter-start-date").val() || "",
+    ).trim();
+    const rangeEndRaw = String(
+        $("#project-filter-end-date-iso").val() ||
+            $("#project-filter-end-date").val() ||
+            "",
+    ).trim();
+
+    const anchorDateRaw = String(
+        $("#project-filter-anchor-date").val() || "",
+    ).trim();
+
+    if (searchQuery) {
+        filtered = filtered.filter((project) =>
+            (project.nama_project || "")
+                .toString()
+                .toLowerCase()
+                .includes(searchQuery),
+        );
+    }
+
+    if (rangeStartRaw && rangeEndRaw) {
+        const rangeStart = new Date(rangeStartRaw + "T00:00:00");
+        const rangeEnd = new Date(rangeEndRaw + "T23:59:59");
+
+        if (
+            !Number.isNaN(rangeStart.getTime()) &&
+            !Number.isNaN(rangeEnd.getTime())
+        ) {
+            filtered = filtered.filter((project) => {
+                const projectDate = parseProjectCreatedAt(project.created_at);
+                return (
+                    projectDate &&
+                    projectDate >= rangeStart &&
+                    projectDate <= rangeEnd
+                );
+            });
+        }
+    } else if (anchorDateRaw) {
+        const anchorDate = new Date(anchorDateRaw + "T23:59:59");
+        if (!Number.isNaN(anchorDate.getTime())) {
+            const semesterStart = new Date(anchorDate);
+            semesterStart.setHours(0, 0, 0, 0);
+            semesterStart.setMonth(semesterStart.getMonth() - 6);
+
+            filtered = filtered.filter((project) => {
+                const projectDate = parseProjectCreatedAt(project.created_at);
+                return (
+                    projectDate &&
+                    projectDate >= semesterStart &&
+                    projectDate <= anchorDate
+                );
+            });
+        }
+    }
+
+    renderOwnerProjects(filtered);
+}
+
+// Inisialisasi search + filter semester (1 input tanggal)
 function initSearch() {
     const $input = $("#project-search");
-    if (!$input.length) return;
+    const $semesterDate = $("#project-filter-anchor-date");
 
-    const handleSearch = debounce(function () {
-        const q = $input.val().trim().toLowerCase();
-        if (!q) {
-            renderOwnerProjects(projectsCache);
+    const debouncedApply = debounce(applyProjectFilters, 250);
+
+    if ($input.length) {
+        $input.off("input.search").on("input.search", debouncedApply);
+    }
+
+    if ($semesterDate.length) {
+        $semesterDate
+            .off("change.projectSemesterFilter")
+            .on("change.projectSemesterFilter", applyProjectFilters);
+    }
+}
+
+function initProjectFilterUI() {
+    const $dropdown = $("#project-filter-dropdown");
+    if (!$dropdown.length) return;
+
+    const $btn = $("#project-filter-btn");
+    const $panel = $("#project-filter-panel");
+    const $close = $("#project-filter-close");
+    const $mode = $("#project-filter-mode");
+    const $endInput = $("#project-filter-end-date");
+    const $endIso = $("#project-filter-end-date-iso");
+    const $reset = $("#project-filter-reset");
+    const $startHidden = $("#project-filter-start-date");
+    const $anchor = $("#project-filter-anchor-date");
+
+    const $btnText = $("#project-filter-btn-text");
+    const $btnRange = $("#project-filter-btn-range");
+    const $rangeStart = $("#project-filter-range-start");
+    const $rangeEnd = $("#project-filter-range-end");
+    const $rangeLabel = $("#project-filter-range-label");
+
+    let isSyncing = false;
+    let rangeState = { start: null, end: null };
+
+    function updateRangeState(range) {
+        rangeState = {
+            start: range.start ? new Date(range.start) : null,
+            end: range.end ? new Date(range.end) : null,
+        };
+        if ($endInput.data("datepicker")) {
+            $endInput.datepicker("refresh");
+        }
+    }
+
+    function syncDatepicker(date) {
+        if ($endInput.data("datepicker")) {
+            isSyncing = true;
+            $endInput.datepicker("setDate", date || null);
+            isSyncing = false;
+        } else {
+            $endInput.val(date ? toInputDate(date) : "");
+        }
+    }
+
+    function renderRange(range) {
+        if (!range.start || !range.end) {
+            $rangeStart.text("--");
+            $rangeEnd.text("--");
+            $rangeLabel.text("Semua Project");
+            $btnText.text("Filter Waktu");
+            $btnRange.addClass("hidden").text("");
+            $btn.removeClass("project-filter-active");
             return;
         }
-        const filtered = projectsCache.filter((p) => {
-            return (p.nama_project || "").toString().toLowerCase().includes(q);
-        });
-        renderOwnerProjects(filtered);
-    }, 250);
 
-    $input.off("input.search").on("input.search", handleSearch);
+        const startLabel = formatFilterDate(range.start);
+        const endLabel = formatFilterDate(range.end);
+
+        $rangeStart.text(startLabel);
+        $rangeEnd.text(endLabel);
+        $rangeLabel.text(range.label);
+        $btnText.text("Filter Aktif");
+        $btnRange.removeClass("hidden").text(startLabel + " - " + endLabel);
+        $btn.addClass("project-filter-active");
+    }
+
+    function applyRange(mode, endDate, shouldFilter) {
+        if (mode === "all") {
+            $startHidden.val("");
+            $endIso.val("");
+            $endInput.val("");
+            $anchor.val("");
+            updateRangeState({ start: null, end: null });
+            syncDatepicker(null);
+            renderRange({ start: null, end: null, label: "Semua Project" });
+
+            if (shouldFilter) applyProjectFilters();
+            return;
+        }
+
+        const range = buildFilterRange(mode, endDate || new Date());
+        $startHidden.val(toInputDate(range.start));
+        $endIso.val(toInputDate(range.end));
+        $anchor.val(toInputDate(range.end));
+        syncDatepicker(range.end);
+        updateRangeState(range);
+        renderRange(range);
+
+        if (shouldFilter) applyProjectFilters();
+    }
+
+    $btn.off("click.projectFilter").on("click.projectFilter", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $panel.toggleClass("hidden");
+    });
+
+    $close.off("click.projectFilter").on("click.projectFilter", function () {
+        $panel.addClass("hidden");
+    });
+
+    $mode.off("change.projectFilter").on("change.projectFilter", function () {
+        const mode = $(this).val();
+        if (mode === "all") {
+            applyRange(mode, null, true);
+            return;
+        }
+
+        $endInput.prop("disabled", false);
+        if ($endInput.data("datepicker")) {
+            $endInput.datepicker("option", "disabled", false);
+        }
+        const endDate =
+            parseInputDate($endIso.val()) ||
+            parseInputDate($endInput.val()) ||
+            new Date();
+        applyRange(mode, endDate, true);
+    });
+
+    $endInput
+        .off("change.projectFilter")
+        .on("change.projectFilter", function () {
+            let mode = $mode.val();
+            if (mode === "all") {
+                mode = "last-6";
+                $mode.val(mode);
+            }
+            const endDate = parseInputDate($endInput.val()) || new Date();
+            $endIso.val(toInputDate(endDate));
+            applyRange(mode, endDate, true);
+        });
+
+    $reset.off("click.projectFilter").on("click.projectFilter", function (e) {
+        e.preventDefault();
+        $mode.val("all");
+        applyRange("all", null, true);
+    });
+
+    $(document)
+        .off("mousedown.projectFilterDatepicker click.projectFilterDatepicker")
+        .on(
+            "mousedown.projectFilterDatepicker click.projectFilterDatepicker",
+            ".ui-datepicker, .ui-datepicker *",
+            function (e) {
+                e.stopPropagation();
+            },
+        );
+
+    $(document)
+        .off("click.projectFilterOutside")
+        .on("click.projectFilterOutside", function (e) {
+            if (
+                !$(e.target).closest("#project-filter-dropdown").length &&
+                !$(e.target).closest(".ui-datepicker").length
+            ) {
+                $panel.addClass("hidden");
+            }
+        });
+
+    if ($endInput.length && $.fn.datepicker) {
+        $endInput.datepicker({
+            dateFormat: "dd/mm/yy",
+            altField: "#project-filter-end-date-iso",
+            altFormat: "yy-mm-dd",
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            beforeShowDay: function (date) {
+                if (!rangeState.start || !rangeState.end) {
+                    return [true, "", ""];
+                }
+
+                const time = date.setHours(0, 0, 0, 0);
+                const startTime = new Date(rangeState.start).setHours(
+                    0,
+                    0,
+                    0,
+                    0,
+                );
+                const endTime = new Date(rangeState.end).setHours(0, 0, 0, 0);
+
+                if (time < startTime || time > endTime) {
+                    return [true, "", ""];
+                }
+
+                let classes = "ui-range-highlight";
+                if (time === startTime) classes += " ui-range-start";
+                if (time === endTime) classes += " ui-range-end";
+                return [true, classes, ""];
+            },
+            onSelect: function () {
+                if (isSyncing) return;
+                let mode = $mode.val();
+                if (mode === "all") {
+                    mode = "last-6";
+                    $mode.val(mode);
+                }
+                const endDate =
+                    parseInputDate($endIso.val()) ||
+                    parseInputDate($endInput.val()) ||
+                    new Date();
+                applyRange(mode, endDate, true);
+            },
+        });
+    }
+
+    $mode.val("all");
+    applyRange("all", null, false);
 }
 
 function escapeHtml(text) {
@@ -983,6 +1333,7 @@ function initOwnerDashboard() {
     loadOwnerProjects();
     loadUnassignedTasks();
     initModalHandlers();
+    initProjectFilterUI();
     initSearch();
 }
 

@@ -30,6 +30,57 @@
                 <input id="project-search" type="search" placeholder="Cari project..."
                     class="px-3 py-2 border border-gray-300 rounded-md w-64 focus:ring-blue-500 focus:border-blue-500" />
 
+                <div class="relative" id="project-filter-dropdown">
+                    <button id="project-filter-btn" class="font-medium flex items-center gap-2 py-2 px-3 text-blue-600 bg-white border border-blue-500 hover:bg-blue-50 shadow-sm rounded-md">
+                        <i class="ph-bold ph-funnel"></i>
+                        <span class="flex flex-col items-start leading-tight">
+                            <span id="project-filter-btn-text" class="text-sm">Filter Waktu</span>
+                            <span id="project-filter-btn-range" class="text-xs text-blue-500 hidden"></span>
+                        </span>
+                    </button>
+                    <div id="project-filter-panel" class="project-filter-panel hidden absolute right-0 mt-2 w-[360px] bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-30">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-semibold text-gray-900">Filter Tanggal</h4>
+                            <button id="project-filter-close" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="project-filter-mode" class="block text-xs font-medium text-gray-600 mb-1">Rentang</label>
+                            <select id="project-filter-mode" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="all">Semua Project</option>
+                                <option value="last-6">6 Bulan Terakhir</option>
+                                <option value="semester">Semester Ini</option>
+                            </select>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="project-filter-end-date" class="block text-xs font-medium text-gray-600 mb-1">Akhir Rentang</label>
+                            <div class="relative">
+                                <input type="text" id="project-filter-end-date" autocomplete="off" placeholder="Pilih tanggal"
+                                       class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500" />
+                                <span class="filter-date-icon" aria-hidden="true">
+                                    <i class="ph-bold ph-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="filter-range-pill">
+                                <span class="filter-range-chip" id="project-filter-range-start">--</span>
+                                <span class="filter-range-separator">-</span>
+                                <span class="filter-range-chip" id="project-filter-range-end">--</span>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between">
+                                <!--<span id="project-filter-range-label" class="text-xs text-gray-500">Semua Project</span>-->
+                                <button id="project-filter-reset" class="text-xs text-blue-600 hover:text-blue-500">Reset</button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="project-filter-start-date" value="">
+                        <input type="hidden" id="project-filter-end-date-iso" value="">
+                        <input type="hidden" id="project-filter-anchor-date" value="">
+                    </div>
+                </div>
                 <button id="open-modal-create" class="font-medium flex items-center gap-2 py-2 px-3 text-white bg-blue-600 hover:bg-blue-500 shadow-sm rounded-md">
                     <i class="ph-bold ph-plus"></i>Tambah Project
                 </button>
