@@ -62,7 +62,7 @@
                 document.cookie = `token=${data.access_token}; path=/`;
 
                 // Redirect the user to the projects page
-                window.location.href = '/project';
+                window.location.href = '/my-project';
             } else {
                 alert("Login failed: " + data.error);
             }

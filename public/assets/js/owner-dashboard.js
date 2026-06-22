@@ -94,30 +94,44 @@ function formatFilterDate(date) {
     });
 }
 
-function getSemesterRange(date) {
-    const year = date.getFullYear();
-    const isFirstSemester = date.getMonth() < 6;
-    const start = new Date(year, isFirstSemester ? 0 : 6, 1);
-    const end = new Date(year, isFirstSemester ? 6 : 12, 0);
-    const label = `Semester ${isFirstSemester ? 1 : 2} ${year}`;
-    return { start, end, label };
-}
+function generateSemesterOptions() {
+    // Academic semester system:
+    // Semester Ganjil: August - January  => labeled as YYYY/YYYY+1 - Ganjil
+    // Semester Genap:  February - July   => labeled as YYYY/YYYY+1 - Genap
+    const now = new Date();
+    const currentYear = now.getFullYear();
 
-function buildFilterRange(mode, endDate) {
-    const anchorDate = endDate || new Date();
+    const semesters = [];
 
-    if (mode === "semester") {
-        return getSemesterRange(anchorDate);
+    // Generate semesters: 3 years back + current + 1 year ahead
+    for (let startYear = currentYear - 3; startYear <= currentYear + 1; startYear++) {
+        const endYear = startYear + 1;
+
+        // Semester Ganjil: Aug startYear – Jan endYear
+        semesters.push({
+            label: `${startYear}/${endYear} - Ganjil`,
+            start: new Date(startYear, 7, 1),  // Aug 1
+            end: new Date(endYear, 0, 31, 23, 59, 59),  // Jan 31
+        });
+
+        // Semester Genap: Feb endYear – Jul endYear
+        semesters.push({
+            label: `${startYear}/${endYear} - Genap`,
+            start: new Date(endYear, 1, 1),  // Feb 1
+            end: new Date(endYear, 6, 31, 23, 59, 59),  // Jul 31
+        });
     }
 
-    if (mode === "last-6") {
-        const end = new Date(anchorDate);
-        const start = new Date(anchorDate);
-        start.setMonth(start.getMonth() - 6);
-        return { start, end, label: "6 Bulan Terakhir" };
+    // Determine which semester is active now
+    let activeSemester = null;
+    for (const sem of semesters) {
+        if (now >= sem.start && now <= sem.end) {
+            activeSemester = sem.label;
+            break;
+        }
     }
 
-    return { start: null, end: null, label: "Semua Projec" };
+    return { semesters, activeSemester };
 }
 
 function applyProjectFilters() {
@@ -131,13 +145,7 @@ function applyProjectFilters() {
         $("#project-filter-start-date").val() || "",
     ).trim();
     const rangeEndRaw = String(
-        $("#project-filter-end-date-iso").val() ||
-            $("#project-filter-end-date").val() ||
-            "",
-    ).trim();
-
-    const anchorDateRaw = String(
-        $("#project-filter-anchor-date").val() || "",
+        $("#project-filter-end-date-iso").val() || "",
     ).trim();
 
     if (searchQuery) {
@@ -166,42 +174,17 @@ function applyProjectFilters() {
                 );
             });
         }
-    } else if (anchorDateRaw) {
-        const anchorDate = new Date(anchorDateRaw + "T23:59:59");
-        if (!Number.isNaN(anchorDate.getTime())) {
-            const semesterStart = new Date(anchorDate);
-            semesterStart.setHours(0, 0, 0, 0);
-            semesterStart.setMonth(semesterStart.getMonth() - 6);
-
-            filtered = filtered.filter((project) => {
-                const projectDate = parseProjectCreatedAt(project.created_at);
-                return (
-                    projectDate &&
-                    projectDate >= semesterStart &&
-                    projectDate <= anchorDate
-                );
-            });
-        }
     }
 
     renderOwnerProjects(filtered);
 }
 
-// Inisialisasi search + filter semester (1 input tanggal)
 function initSearch() {
     const $input = $("#project-search");
-    const $semesterDate = $("#project-filter-anchor-date");
-
     const debouncedApply = debounce(applyProjectFilters, 250);
 
     if ($input.length) {
         $input.off("input.search").on("input.search", debouncedApply);
-    }
-
-    if ($semesterDate.length) {
-        $semesterDate
-            .off("change.projectSemesterFilter")
-            .on("change.projectSemesterFilter", applyProjectFilters);
     }
 }
 
@@ -211,217 +194,115 @@ function initProjectFilterUI() {
 
     const $btn = $("#project-filter-btn");
     const $panel = $("#project-filter-panel");
-    const $close = $("#project-filter-close");
-    const $mode = $("#project-filter-mode");
-    const $endInput = $("#project-filter-end-date");
-    const $endIso = $("#project-filter-end-date-iso");
-    const $reset = $("#project-filter-reset");
-    const $startHidden = $("#project-filter-start-date");
-    const $anchor = $("#project-filter-anchor-date");
-
+    const $list = $("#semester-filter-list");
     const $btnText = $("#project-filter-btn-text");
-    const $btnRange = $("#project-filter-btn-range");
-    const $rangeStart = $("#project-filter-range-start");
-    const $rangeEnd = $("#project-filter-range-end");
-    const $rangeLabel = $("#project-filter-range-label");
+    const $startHidden = $("#project-filter-start-date");
+    const $endIso = $("#project-filter-end-date-iso");
 
-    let isSyncing = false;
-    let rangeState = { start: null, end: null };
+    const { semesters, activeSemester } = generateSemesterOptions();
 
-    function isDatepickerInteraction(target) {
-        if (!target) return false;
-        if (target.id === "ui-datepicker-div") return true;
+    // Build the semester list HTML
+    let listHtml = '';
 
-        const className = String(target.className || "");
-        if (className.includes("ui-datepicker")) return true;
+    // "Semua Project" option at top
+    listHtml += `<button class="semester-filter-item" data-semester="all">
+        <i class="ph-bold ph-list-bullets"></i>
+        <span>Semua Semester</span>
+    </button>`;
 
-        return $(target).closest("#ui-datepicker-div").length > 0;
+    // Add semester items (newest first)
+    const reversed = [...semesters].reverse();
+    for (const sem of reversed) {
+        const isCurrent = sem.label === activeSemester;
+        const startISO = toInputDate(sem.start);
+        const endISO = toInputDate(sem.end);
+
+        listHtml += `<button class="semester-filter-item${isCurrent ? ' current' : ''}"
+            data-semester="${sem.label}"
+            data-start="${startISO}"
+            data-end="${endISO}">
+            <i class="ph-bold ph-graduation-cap"></i>
+            <span>${sem.label}</span>
+        </button>`;
     }
 
-    function updateRangeState(range) {
-        rangeState = {
-            start: range.start ? new Date(range.start) : null,
-            end: range.end ? new Date(range.end) : null,
-        };
-        if ($endInput.data("datepicker")) {
-            $endInput.datepicker("refresh");
-        }
-    }
+    $list.html(listHtml);
 
-    function syncDatepicker(date) {
-        if ($endInput.data("datepicker")) {
-            isSyncing = true;
-            $endInput.datepicker("setDate", date || null);
-            isSyncing = false;
-        } else {
-            $endInput.val(date ? toInputDate(date) : "");
-        }
-    }
+    // Helper to select a semester by its data-semester value
+    function selectSemester(semesterValue) {
+        $list.find(".semester-filter-item").removeClass("active");
 
-    function renderRange(range) {
-        if (!range.start || !range.end) {
-            $rangeStart.text("--");
-            $rangeEnd.text("--");
-            $rangeLabel.text("Semua Project");
-            $btnText.text("Filter Tanggal");
-            $btnRange.addClass("hidden").text("");
-            $btn.removeClass("project-filter-active");
-            return;
-        }
-
-        const startLabel = formatFilterDate(range.start);
-        const endLabel = formatFilterDate(range.end);
-
-        $rangeStart.text(startLabel);
-        $rangeEnd.text(endLabel);
-        $rangeLabel.text(range.label);
-        $btnText.text("Filter Aktif");
-        $btnRange.removeClass("hidden").text(startLabel + " - " + endLabel);
-        $btn.addClass("project-filter-active");
-    }
-
-    function applyRange(mode, endDate, shouldFilter) {
-        if (mode === "all") {
+        const $target = $list.find(`.semester-filter-item[data-semester="${semesterValue}"]`);
+        if (!$target.length) {
+            // Fallback to "all" if saved value no longer exists
+            $list.find('.semester-filter-item[data-semester="all"]').addClass("active");
             $startHidden.val("");
             $endIso.val("");
-            $endInput.val("");
-            $anchor.val("");
-            updateRangeState({ start: null, end: null });
-            syncDatepicker(null);
-            renderRange({ start: null, end: null, label: "Semua Project" });
-
-            if (shouldFilter) applyProjectFilters();
+            $btnText.text("Semua Semester");
+            $btn.removeClass("project-filter-active");
+            localStorage.removeItem("semesterFilter");
             return;
         }
 
-        const range = buildFilterRange(mode, endDate || new Date());
-        $startHidden.val(toInputDate(range.start));
-        $endIso.val(toInputDate(range.end));
-        $anchor.val(toInputDate(range.end));
-        syncDatepicker(range.end);
-        updateRangeState(range);
-        renderRange(range);
+        $target.addClass("active");
 
-        if (shouldFilter) applyProjectFilters();
+        if (semesterValue === "all") {
+            $startHidden.val("");
+            $endIso.val("");
+            $btnText.text("Semua Semester");
+            $btn.removeClass("project-filter-active");
+        } else {
+            $startHidden.val($target.data("start"));
+            $endIso.val($target.data("end"));
+            $btnText.text(semesterValue);
+            $btn.addClass("project-filter-active");
+        }
     }
 
+    // Toggle panel
     $btn.off("click.projectFilter").on("click.projectFilter", function (e) {
         e.preventDefault();
         e.stopPropagation();
         $panel.toggleClass("hidden");
     });
 
-    $close.off("click.projectFilter").on("click.projectFilter", function () {
-        $panel.addClass("hidden");
-    });
-
-    $mode.off("change.projectFilter").on("change.projectFilter", function () {
-        const mode = $(this).val();
-        if (mode === "all") {
-            applyRange(mode, null, true);
-            return;
-        }
-
-        $endInput.prop("disabled", false);
-        if ($endInput.data("datepicker")) {
-            $endInput.datepicker("option", "disabled", false);
-        }
-        const endDate =
-            parseInputDate($endIso.val()) ||
-            parseInputDate($endInput.val()) ||
-            new Date();
-        applyRange(mode, endDate, true);
-    });
-
-    $endInput
-        .off("change.projectFilter")
-        .on("change.projectFilter", function () {
-            let mode = $mode.val();
-            if (mode === "all") {
-                mode = "last-6";
-                $mode.val(mode);
-            }
-            const endDate = parseInputDate($endInput.val()) || new Date();
-            $endIso.val(toInputDate(endDate));
-            applyRange(mode, endDate, true);
-        });
-
-    $reset.off("click.projectFilter").on("click.projectFilter", function (e) {
+    // Handle semester item click
+    $list.off("click.semesterItem").on("click.semesterItem", ".semester-filter-item", function (e) {
         e.preventDefault();
-        $mode.val("all");
-        applyRange("all", null, true);
+
+        const semester = $(this).data("semester");
+        selectSemester(semester);
+
+        // Save to localStorage
+        if (semester === "all") {
+            localStorage.removeItem("semesterFilter");
+        } else {
+            localStorage.setItem("semesterFilter", semester);
+        }
+
+        // Close panel and apply filter
+        $panel.addClass("hidden");
+        applyProjectFilters();
     });
 
-    $(document)
-        .off("mousedown.projectFilterDatepicker click.projectFilterDatepicker")
-        .on(
-            "mousedown.projectFilterDatepicker click.projectFilterDatepicker",
-            "#ui-datepicker-div, #ui-datepicker-div *",
-            function (e) {
-                e.stopImmediatePropagation();
-            },
-        );
-
+    // Close on outside click
     $(document)
         .off("click.projectFilterOutside")
         .on("click.projectFilterOutside", function (e) {
-            if (
-                !$(e.target).closest("#project-filter-dropdown").length &&
-                !isDatepickerInteraction(e.target)
-            ) {
+            if (!$(e.target).closest("#project-filter-dropdown").length) {
                 $panel.addClass("hidden");
             }
         });
 
-    if ($endInput.length && $.fn.datepicker) {
-        $endInput.datepicker({
-            dateFormat: "dd/mm/yy",
-            altField: "#project-filter-end-date-iso",
-            altFormat: "yy-mm-dd",
-            showOtherMonths: true,
-            selectOtherMonths: true,
-            beforeShowDay: function (date) {
-                if (!rangeState.start || !rangeState.end) {
-                    return [true, "", ""];
-                }
-
-                const time = date.setHours(0, 0, 0, 0);
-                const startTime = new Date(rangeState.start).setHours(
-                    0,
-                    0,
-                    0,
-                    0,
-                );
-                const endTime = new Date(rangeState.end).setHours(0, 0, 0, 0);
-
-                if (time < startTime || time > endTime) {
-                    return [true, "", ""];
-                }
-
-                let classes = "ui-range-highlight";
-                if (time === startTime) classes += " ui-range-start";
-                if (time === endTime) classes += " ui-range-end";
-                return [true, classes, ""];
-            },
-            onSelect: function () {
-                if (isSyncing) return;
-                let mode = $mode.val();
-                if (mode === "all") {
-                    mode = "last-6";
-                    $mode.val(mode);
-                }
-                const endDate =
-                    parseInputDate($endIso.val()) ||
-                    parseInputDate($endInput.val()) ||
-                    new Date();
-                applyRange(mode, endDate, true);
-            },
-        });
+    // Restore saved filter from localStorage
+    const savedFilter = localStorage.getItem("semesterFilter");
+    if (savedFilter) {
+        selectSemester(savedFilter);
+    } else {
+        selectSemester("all");
     }
-
-    $mode.val("all");
-    applyRange("all", null, false);
 }
+
 
 function escapeHtml(text) {
     const map = {
@@ -506,9 +387,9 @@ function loadUnassignedTasks() {
             console.error("Gagal memuat task pool:", xhr);
             $("#unassigned-task-list").html(
                 '<div class="text-center py-6 text-red-500">' +
-                    '<i class="ph-bold ph-warning-circle text-xl mb-2"></i>' +
-                    "<p>Gagal memuat task pool</p>" +
-                    "</div>",
+                '<i class="ph-bold ph-warning-circle text-xl mb-2"></i>' +
+                "<p>Gagal memuat task pool</p>" +
+                "</div>",
             );
         },
     });
@@ -521,9 +402,9 @@ function renderUnassignedTasks(tasks) {
     if (!tasks.length) {
         $list.html(
             '<div class="w-full text-center py-8 text-gray-400 empty-placeholder">' +
-                '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
-                '<p class="text-xs">Belum ada task</p>' +
-                "</div>",
+            '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
+            '<p class="text-xs">Belum ada task</p>' +
+            "</div>",
         );
         return;
     }
@@ -656,17 +537,16 @@ function renderOwnerProjects(projects) {
                         </span>
                     </div>
 
-                    ${
-                        memberNames
-                            ? `
+                    ${memberNames
+                ? `
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex items-center">
                                 ${memberAvatars}
                             </div>
                         </div>
                     `
-                            : ""
-                    }
+                : ""
+            }
                 </div>
 
                 <!-- Vertical Task Board -->
@@ -827,18 +707,16 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                         <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
                             ${task.nama_task || task.name || task.title}
                         </h5>
-                        ${
-                            task.deskripsi
-                                ? `
+                        ${task.deskripsi
+                        ? `
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
                         `
-                                : ""
-                        }
-                        ${
-                            task.gdrive_link
-                                ? `
+                        : ""
+                    }
+                        ${task.gdrive_link
+                        ? `
                         <div class="mt-2 mb-2">
                             <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
@@ -848,21 +726,20 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                             </a>
                         </div>
                         `
-                                : ""
-                        }
+                        : ""
+                    }
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
                                     ${memberAvatars}
                                 </div>
                             </div>
-                            ${
-                                task.updated_at
-                                    ? `
+                            ${task.updated_at
+                        ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                         </div>
                     </div>
                 `;
@@ -984,18 +861,16 @@ function renderVerticalTaskBoard(projectId, tasks) {
                             <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
                                 ${task.nama_task || task.name || task.title || "Task #" + task.idtask}
                             </h5>
-                            ${
-                                task.deskripsi
-                                    ? `
+                            ${task.deskripsi
+                        ? `
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
                             `
-                                    : ""
-                            }
-                            ${
-                                task.gdrive_link
-                                    ? `
+                        : ""
+                    }
+                            ${task.gdrive_link
+                        ? `
                             <div class="mt-2 mb-2">
                                 <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
@@ -1005,20 +880,19 @@ function renderVerticalTaskBoard(projectId, tasks) {
                                 </a>
                             </div>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
                         </div>
                         <div class="flex flex-col items-end text-xs text-gray-400 ml-2">
-                            ${
-                                task.updated_at
-                                    ? `
+                            ${task.updated_at
+                        ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                         </div>
                     </div>
                 `;
@@ -1088,9 +962,9 @@ function initSortableTasks() {
                 if ($(this).children(".task-card").length === 0) {
                     $(this).html(
                         '<div class="text-center py-8 text-gray-400 empty-placeholder">' +
-                            '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
-                            '<p class="text-xs">Tidak ada task</p>' +
-                            "</div>",
+                        '<i class="ph-bold ph-clipboard-text text-xl mb-2"></i>' +
+                        '<p class="text-xs">Tidak ada task</p>' +
+                        "</div>",
                     );
                 }
             },

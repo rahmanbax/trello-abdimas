@@ -183,17 +183,16 @@ function renderOwnerProjects(projects) {
                         </span>
                     </div>
 
-                    ${
-                        memberNames
-                            ? `
+                    ${memberNames
+                ? `
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex items-center">
                                 ${memberAvatars}
                             </div>
                         </div>
                     `
-                            : ""
-                    }
+                : ""
+            }
                 </div>
 
                 <!-- Vertical Task Board -->
@@ -363,18 +362,16 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                         <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
                             ${task.nama_task || task.name || task.title}
                         </h5>
-                        ${
-                            task.deskripsi
-                                ? `
+                        ${task.deskripsi
+                        ? `
                         <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                             ${task.deskripsi}
                         </p>
                         `
-                                : ""
-                        }
-                        ${
-                            task.gdrive_link
-                                ? `
+                        : ""
+                    }
+                        ${task.gdrive_link
+                        ? `
                         <div class="mt-2 mb-2">
                             <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
@@ -384,21 +381,20 @@ function renderHorizontalTaskBoard(projectId, tasks) {
                             </a>
                         </div>
                         `
-                                : ""
-                        }
+                        : ""
+                    }
                         <div class="flex justify-between items-center text-xs text-gray-400">
                             <div class="flex items-center gap-1 mt-2">
                                 <div class="flex items-center">
                                     ${memberAvatars}
                                 </div>
                             </div>
-                            ${
-                                task.updated_at
-                                    ? `
+                            ${task.updated_at
+                        ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                         </div>
                     </div>
                 `;
@@ -520,18 +516,16 @@ function renderVerticalTaskBoard(projectId, tasks) {
                             <h5 class="text-sm font-medium text-gray-800 mb-2 leading-tight">
                                 ${task.nama_task || task.name || task.title || "Task #" + task.idtask}
                             </h5>
-                            ${
-                                task.deskripsi
-                                    ? `
+                            ${task.deskripsi
+                        ? `
                             <p class="text-xs text-gray-500 mb-3 line-clamp-2">
                                 ${task.deskripsi}
                             </p>
                             `
-                                    : ""
-                            }
-                            ${
-                                task.gdrive_link
-                                    ? `
+                        : ""
+                    }
+                            ${task.gdrive_link
+                        ? `
                             <div class="mt-2 mb-2">
                                 <a href="${task.gdrive_link}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded bg-blue-50"
@@ -541,20 +535,19 @@ function renderVerticalTaskBoard(projectId, tasks) {
                                 </a>
                             </div>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                             <div class="flex items-center mt-2">
                                 ${userAvatar}
                             </div>
                         </div>
                         <div class="flex flex-col items-end text-xs text-gray-400 ml-2">
-                            ${
-                                task.updated_at
-                                    ? `
+                            ${task.updated_at
+                        ? `
                             <span>${formatRelativeTime(task.updated_at)}</span>
                             `
-                                    : ""
-                            }
+                        : ""
+                    }
                         </div>
                     </div>
                 `;
