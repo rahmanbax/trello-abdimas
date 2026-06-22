@@ -1,66 +1,82 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Trello Abdimas - Project Management Tool
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Product Catalog App Screenshot](https://i.postimg.cc/yYDbDGsy/Screenshot-2026-06-22-221523.png)
 
-## About Laravel
+A web-based project management application inspired by Trello, specifically designed to help manage, organize, and track community service (Pengabdian Masyarakat / Abdimas) projects.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Authentication**: Secure Login and Registration system using token-based authentication (stored in localStorage & cookies).
+- **Owner Dashboard**: An intuitive overview of all projects, featuring a custom academic semester filter (e.g., 2024/2025 - Ganjil/Genap) that persists via local storage.
+- **Kanban Task Board**: A rich drag-and-drop interface for managing tasks across different progression states (To Do, In Progress, Done).
+- **Task Management**: Create, assign, and track tasks with descriptions and Google Drive documentation links.
+- **Modern UI/UX**: Smooth interactions, glassmorphism elements, custom modals, hover effects, and toast notifications.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+### Core Framework
+- **Laravel**: Used as the primary framework for routing and serving views via Blade templates.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Frontend Technologies
+- **HTML/Blade Templating**: Modular view structuring.
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development and responsive design (bundled with Vite).
+- **Vanilla CSS**: Custom styling for intricate components like the horizontal scrolling Kanban boards, datepickers, and custom dropdowns.
+- **Vanilla JavaScript & ES6**: Handles asynchronous API requests (`fetch` and `$.ajax`), DOM manipulations, and local state management.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Libraries & Dependencies
+- **jQuery (3.7.1) & jQuery UI**: Powering the seamless drag-and-drop (`Sortable`) functionality for the task cards.
+- **Phosphor Icons**: Clean and modern iconography.
+- **Toastr**: Lightweight library for non-blocking flash notifications.
+- **Vite**: Next-generation frontend tooling for fast development and asset bundling.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Installation & Setup
 
-## Laravel Sponsors
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd trello-abdimas
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. **Install PHP Dependencies**
+   ```bash
+   composer install
+   ```
 
-### Premium Partners
+3. **Install NPM Dependencies**
+   ```bash
+   npm install
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+4. **Environment Setup**
+   Copy the example environment file and generate an application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Contributing
+5. **Run the Development Servers**
+   To work on this project locally, you need to run both Laravel's local development server and Vite's asset bundler simultaneously:
+   
+   Terminal 1 (Laravel Server):
+   ```bash
+   php artisan serve
+   ```
+   
+   Terminal 2 (Vite):
+   ```bash
+   npm run dev
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+6. **Access the Application**
+   Open your browser and navigate to `http://127.0.0.1:8000`
 
-## Code of Conduct
+## Key File Structure
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- `resources/views/` - Contains all application interfaces (Authentication, Owner Dashboard, Project Views).
+- `public/assets/js/` - Core JavaScript logic (e.g., API interactions, Kanban logic in `owner-dashboard.js`).
+- `public/assets/css/` - Custom design overrides and board styling.
+- `routes/` - Web and API route definitions.
 
-## Security Vulnerabilities
+## Authors
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Developed for the Abdimas Project Management initiative.
