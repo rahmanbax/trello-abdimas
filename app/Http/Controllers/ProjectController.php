@@ -82,6 +82,17 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project not found'], 404);
         }
 
+        // Acces Check
+        $userId = auth()->user()->id;
+        $isOwner = $project->iduser == $userId;
+        $isCollaborator = Collaborator::where('project_id', $id)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if (!$isOwner && !$isCollaborator) {
+            return response()->json(['message' => 'Anda tidak memiliki akses ke project ini'], 403);
+        }
+
         return response()->json($project, 200);
     }
 
@@ -94,6 +105,11 @@ class ProjectController extends Controller
 
         if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
+        }
+
+    
+        if ($project->iduser != auth()->user()->id) {
+            return response()->json(['message' => 'Hanya pemilik project yang dapat mengedit'], 403);
         }
 
         $validated = $request->validate([
@@ -117,6 +133,10 @@ class ProjectController extends Controller
 
         if (! $project) {
             return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        if ($project->iduser != auth()->user()->id) {
+            return response()->json(['message' => 'Hanya pemilik project yang dapat menghapus'], 403);
         }
 
         $project->delete();

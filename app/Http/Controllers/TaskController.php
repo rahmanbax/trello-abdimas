@@ -5,13 +5,37 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Project;
+use App\Models\Collaborator;
 
 class TaskController extends Controller
 {
+    // user checking, user or collaborator
+    private function checkProjectAccess($projectId)
+    {
+        $userId = auth()->user()->id;
+        $project = Project::find($projectId);
+
+        if (!$project) {
+            return false;
+        }
+
+        if ($project->iduser == $userId) {
+            return true;
+        }
+
+        return Collaborator::where('project_id', $projectId)
+            ->where('user_id', $userId)
+            ->exists();
+    }
+
     public function index(Request $request)
     {
         if ($request->boolean("unassigned")) {
-            $tasks = Task::whereNull("idproject")->orderBy("order")->get();
+            $userId = auth()->user()->id;
+            $tasks = Task::whereNull("idproject")
+                ->where("user_id", $userId)
+                ->orderBy("order")
+                ->get();
 
             return response()->json($tasks);
         }
@@ -19,6 +43,10 @@ class TaskController extends Controller
         $idProject = $request->query("idproject");
 
         if ($idProject !== null && $idProject !== "") {
+            if (!$this->checkProjectAccess($idProject)) {
+                return response()->json(["message" => "Anda tidak memiliki akses ke project ini"], 403);
+            }
+
             $tasks = Task::where("idproject", $idProject)
                 ->orderBy("order")
                 ->get();
@@ -26,7 +54,24 @@ class TaskController extends Controller
             return response()->json($tasks);
         }
 
-        return response()->json(Task::orderBy("order")->get());
+        $userId = auth()->user()->id;
+        $accessibleProjectIds = Project::where('iduser', $userId)
+            ->pluck('idproject')
+            ->merge(
+                Collaborator::where('user_id', $userId)->pluck('project_id')
+            );
+
+        $tasks = Task::where(function ($query) use ($accessibleProjectIds, $userId) {
+                $query->whereIn('idproject', $accessibleProjectIds)
+                    ->orWhere(function ($q) use ($userId) {
+                        $q->whereNull('idproject')
+                          ->where('user_id', $userId);
+                    });
+            })
+            ->orderBy('order')
+            ->get();
+
+        return response()->json($tasks);
     }
     /**
      * Fetch all tasks with their related projects.
@@ -57,6 +102,12 @@ class TaskController extends Controller
 
         if (!array_key_exists("idproject", $validated)) {
             $validated["idproject"] = null;
+        }
+
+        $validated["user_id"] = auth()->user()->id;
+
+        if (!is_null($validated["idproject"]) && !$this->checkProjectAccess($validated["idproject"])) {
+            return response()->json(["message" => "Anda tidak memiliki akses ke project ini"], 403);
         }
 
         if (!isset($validated["order"])) {
@@ -98,6 +149,10 @@ class TaskController extends Controller
             return response()->json(["message" => "Task not found"], 404);
         }
 
+        if ($task->idproject && !$this->checkProjectAccess($task->idproject)) {
+            return response()->json(["message" => "Anda tidak memiliki akses ke task ini"], 403);
+        }
+
         return response()->json($task, 200);
     }
 
@@ -110,6 +165,13 @@ class TaskController extends Controller
             $task = Task::findOrFail($id);
             $oldProjectId = $task->idproject;
 
+            if ($task->idproject && !$this->checkProjectAccess($task->idproject)) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "Anda tidak memiliki akses ke task ini",
+                ], 403);
+            }
+
             $validated = $request->validate([
                 "status" => "sometimes|required|in:1,2,3",
                 "nama_task" => "sometimes|required|string|max:255",
@@ -118,6 +180,15 @@ class TaskController extends Controller
                 "gdrive_link" => "sometimes|nullable|string|url",
                 "idproject" => "sometimes|nullable|exists:projects,idproject",
             ]);
+
+            if (isset($validated["idproject"]) && $validated["idproject"] !== $oldProjectId) {
+                if (!is_null($validated["idproject"]) && !$this->checkProjectAccess($validated["idproject"])) {
+                    return response()->json([
+                        "success" => false,
+                        "message" => "Anda tidak memiliki akses ke project tujuan",
+                    ], 403);
+                }
+            }
 
             $task->update($validated);
 
@@ -183,6 +254,10 @@ class TaskController extends Controller
             return response()->json(["message" => "Task not found"], 404);
         }
 
+        if ($task->idproject && !$this->checkProjectAccess($task->idproject)) {
+            return response()->json(["message" => "Anda tidak memiliki akses untuk menghapus task ini"], 403);
+        }
+
         $project = $task->project;
         $task->delete();
 
@@ -210,8 +285,7 @@ class TaskController extends Controller
             // Jika tidak ada parameter idproject, kembalikan semua data task
             $tasks = Task::all();
         }
-
-        // Kembalikan response dalam format JSON
+        
         return response()->json($tasks);
     }
 }

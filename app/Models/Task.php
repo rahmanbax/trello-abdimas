@@ -11,7 +11,7 @@ class Task extends Model
 
     protected $table = 'tasks'; // Nama tabel
     protected $primaryKey = 'idtask'; // Primary key
-    protected $fillable = ['nama_task', 'status', 'order', 'idproject', 'gdrive_link']; // Kolom yang bisa diisi secara massal
+    protected $fillable = ['nama_task', 'status', 'order', 'idproject', 'gdrive_link', 'user_id']; // Kolom yang bisa diisi secara massal
 
     /**
      * Relasi dengan model Project
@@ -20,5 +20,14 @@ class Task extends Model
     public function project()
     {
         return $this->belongsTo(Project::class, 'idproject', 'idproject');
+    }
+
+    /**
+     * Relasi dengan model User
+     * Setiap task dibuat oleh satu user.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }
